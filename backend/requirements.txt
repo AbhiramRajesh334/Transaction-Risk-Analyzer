@@ -1,0 +1,6 @@
+fastapi
+uvicorn
+tortoise-orm
+pydantic
+networkx
+python-dotenv
