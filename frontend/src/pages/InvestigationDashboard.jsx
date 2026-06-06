@@ -3,12 +3,13 @@ import HighRiskAccountsPanel from '../components/risk/HighRiskAccountsPanel';
 import TransactionGraph from '../components/graph/TransactionGraph';
 import ExplainabilityPanel from '../components/explainability/ExplainabilityPanel';
 import EvidenceViewer from '../components/evidence/EvidenceViewer';
-import { fetchHighRiskAccounts, fetchRiskAccount, fetchExplainability } from '../api/riskApi';
+import { fetchHighRiskAccounts, fetchHighRiskCategoryAccounts, fetchRiskAccount, fetchExplainability } from '../api/riskApi';
 import { fetchGraphStats } from '../api/graphApi';
 import '../styles/InvestigationDashboard.css';
 
 export default function InvestigationDashboard({ onBack }) {
   const [highRiskAccounts, setHighRiskAccounts] = useState([]);
+  const [highRiskCategoryCount, setHighRiskCategoryCount] = useState(0);
   const [highRiskLoading, setHighRiskLoading] = useState(false);
   const [highRiskError, setHighRiskError] = useState(null);
 
@@ -35,12 +36,13 @@ export default function InvestigationDashboard({ onBack }) {
     setHighRiskLoading(true);
     setHighRiskError(null);
 
-    fetchHighRiskAccounts()
-      .then((accounts) => {
+    Promise.all([fetchHighRiskAccounts(16), fetchHighRiskCategoryAccounts()])
+      .then(([rankedAccounts, highRiskAccountsOnly]) => {
         if (!active) return;
-        setHighRiskAccounts(accounts);
-        if (!selectedAccount && accounts.length > 0) {
-          setSelectedAccount(accounts[0].account_id);
+        setHighRiskAccounts(rankedAccounts);
+        setHighRiskCategoryCount(highRiskAccountsOnly.length);
+        if (!selectedAccount && rankedAccounts.length > 0) {
+          setSelectedAccount(rankedAccounts[0].account_id);
         }
       })
       .catch((error) => {
@@ -160,7 +162,7 @@ export default function InvestigationDashboard({ onBack }) {
       <div className="investigation-summary-cards">
         <div className="summary-chip">
           <span className="summary-chip-label">High-risk queue</span>
-          <strong>{highRiskAccounts.length}</strong>
+          <strong>{highRiskCategoryCount}</strong>
           <p>{highRiskLoading ? 'Updating…' : 'Accounts flagged for review'}</p>
         </div>
         <div className="summary-chip">

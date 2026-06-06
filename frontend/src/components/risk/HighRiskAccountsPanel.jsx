@@ -4,8 +4,8 @@ export default function HighRiskAccountsPanel({ accounts, selectedAccount, loadi
   return (
     <div>
       <div className="panel-title-block">
-        <h2 className="panel-title">High Risk Accounts</h2>
-        <p className="panel-copy">Investigation queue for the top accounts flagged by the risk engine.</p>
+        <h2 className="panel-title">Risk Ranking</h2>
+        <p className="panel-copy">All 16 accounts ranked from highest to lowest risk signal.</p>
       </div>
 
       {loading ? (

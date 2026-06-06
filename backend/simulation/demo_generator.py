@@ -1,15 +1,16 @@
 """Generate a realistic, small demo dataset with clustered communities.
 
-Produces 20 accounts and a compact transaction network with visible student,
+Produces 16 accounts and a compact transaction network with visible student,
 salaried, and business clusters. The demo generator clears stale data and
 injects exactly five fraud scenarios while keeping the final graph investigator-friendly.
 """
 
 import random
+from collections import Counter
 from datetime import datetime, timedelta
 from typing import List
 
-from database.database import clear_demo_data, insert_ground_truth_entries
+from database.database import clear_demo_data, get_db_connection, insert_ground_truth_entries
 from services.account_service import insert_accounts, list_accounts
 from services.transaction_service import insert_transactions, list_transactions
 from app.simulation.scenarios.activity_spike import inject_activity_spike
@@ -22,9 +23,9 @@ SEED = 42
 
 
 def _build_accounts() -> List[dict]:
-    """Create a fixed set of 20 accounts: 8 Student, 8 Salaried, 4 Business."""
+    """Create a fixed set of 16 accounts: 6 Student, 6 Salaried, 4 Business."""
     accounts = []
-    for i in range(1, 9):
+    for i in range(1, 7):
         accounts.append(
             {
                 "account_id": f"STU{i:02d}",
@@ -33,7 +34,7 @@ def _build_accounts() -> List[dict]:
             }
         )
 
-    for i in range(1, 9):
+    for i in range(1, 7):
         accounts.append(
             {
                 "account_id": f"SAL{i:02d}",
@@ -97,8 +98,10 @@ def _generate_community_transactions(accounts: List[dict]) -> List[dict]:
         vendor = businesses[cluster_index % len(businesses)]
         for student in cluster:
             peers = [peer for peer in cluster if peer != student]
-            add_tx(student, peers[0])
-            add_tx(student, peers[1])
+            if peers:
+                add_tx(student, peers[0])
+            if len(peers) > 1:
+                add_tx(student, peers[1])
             add_tx(student, vendor)
 
     # Salaried accounts: limited family and household relationships, with steady vendor flows.
@@ -116,10 +119,10 @@ def _generate_community_transactions(accounts: List[dict]) -> List[dict]:
 
     # Business accounts: moderate outgoing activity to a consistent set of customers and partners.
     business_map = {
-        businesses[0]: [salaried[0], salaried[1], students[0], students[4]],
-        businesses[1]: [salaried[2], salaried[3], students[1], students[5]],
-        businesses[2]: [salaried[4], salaried[5], students[2], students[6]],
-        businesses[3]: [salaried[6], salaried[7], students[3], students[7]],
+        businesses[0]: [salaried[0], salaried[1], students[0], students[3]],
+        businesses[1]: [salaried[2], salaried[3], students[1], students[4]],
+        businesses[2]: [salaried[4], salaried[5], students[2], students[5]],
+        businesses[3]: [salaried[0], salaried[2], students[0], students[2]],
     }
 
     for sender, receivers in business_map.items():
@@ -177,14 +180,31 @@ def generate_demo_dataset() -> dict:
     final_accounts = list_accounts()
     final_transactions = list_transactions()
 
-    if len(final_accounts) != 20:
+    if len(final_accounts) != 16:
         raise ValueError(
-            f"Demo dataset must contain exactly 20 accounts, found {len(final_accounts)}."
+            f"Demo dataset must contain exactly 16 accounts, found {len(final_accounts)}."
         )
-    if len(final_transactions) >= 100:
+    if len(final_transactions) >= 80:
         raise ValueError(
-            f"Demo dataset must contain fewer than 100 transactions, found {len(final_transactions)}."
+            f"Demo dataset must contain fewer than 80 transactions, found {len(final_transactions)}."
         )
+
+    risk_counts = Counter()
+    for transaction in injected_transactions:
+        risk_counts[transaction["sender_account"]] += 1
+        risk_counts[transaction["receiver_account"]] += 1
+
+    high_risk_accounts = [account_id for account_id, _ in risk_counts.most_common(4)]
+    if high_risk_accounts:
+        connection = get_db_connection()
+        with connection:
+            connection.executemany(
+                "UPDATE accounts SET account_type = 'HighRisk' WHERE account_id = ?",
+                [(account_id,) for account_id in high_risk_accounts],
+            )
+
+    final_accounts = list_accounts()
+    final_transactions = list_transactions()
 
     return {
         "base_accounts": len(accounts),

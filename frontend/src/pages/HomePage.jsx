@@ -1,19 +1,19 @@
 import React, { useEffect, useState } from 'react';
-import { fetchHighRiskAccounts } from '../api/riskApi';
+import { fetchHighRiskCategoryAccounts } from '../api/riskApi';
 import { fetchGraphStats } from '../api/graphApi';
 
 const featureHighlights = [
   {
-    title: 'Investigate flagged entities',
-    description: 'Browse the top high-risk accounts and examine why they are flagged by the model.',
+    title: 'Flag high-risk accounts',
+    description: 'Spot the most suspicious entities and review the signals driving each risk score.',
   },
   {
-    title: 'Map suspicious relationships',
-    description: 'Explore the transaction network and identify the most important risk clusters.',
+    title: 'Map transaction relationships',
+    description: 'Follow linked accounts and exposure paths to uncover hidden risk clusters.',
   },
   {
-    title: 'Evidence-backed explanations',
-    description: 'Open concise reason summaries and inspect supporting evidence quickly.',
+    title: 'Explain every finding',
+    description: 'Open evidence-backed summaries that turn complex graph behavior into clear investigation steps.',
   },
 ];
 
@@ -28,7 +28,7 @@ export default function HomePage({ onNavigate }) {
       setLoading(true);
       try {
         const [accounts, statsResult] = await Promise.all([
-          fetchHighRiskAccounts(10),
+          fetchHighRiskCategoryAccounts(),
           fetchGraphStats(),
         ]);
 
@@ -54,10 +54,10 @@ export default function HomePage({ onNavigate }) {
       <section className="home-hero">
         <div className="home-hero-panel">
           <span className="hero-tag">Investigation Console</span>
-          <h1>Enterprise transaction risk visibility.</h1>
-          <p>Track suspicious accounts, inspect graph relationships, and drill into explainable signals from one clean dashboard.</p>
+          <h1>Detect fraud patterns, trace risky relationships, and explain every alert.</h1>
+          <p>Monitor suspicious accounts, map transaction networks, and surface evidence-backed insights from one concise investigation workspace.</p>
           <button type="button" className="primary-button" onClick={() => onNavigate('network')}>
-            Open network graph
+            Explore the investigation dashboard
           </button>
         </div>
       </section>

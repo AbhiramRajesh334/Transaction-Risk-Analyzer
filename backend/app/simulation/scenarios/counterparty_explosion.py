@@ -8,7 +8,7 @@ def inject_counterparty_explosion(accounts: list[dict], transactions: list[dict]
     """Inject a counterparty explosion scenario with a compact set of new connections."""
     target = random.choice(accounts)
     candidates = [a for a in accounts if a["account_id"] != target["account_id"]]
-    unique_count = min(len(candidates), 5)
+    unique_count = min(len(candidates), 4)
     selected = random.sample(candidates, unique_count)
 
     base_time = datetime.utcnow() - timedelta(hours=1)

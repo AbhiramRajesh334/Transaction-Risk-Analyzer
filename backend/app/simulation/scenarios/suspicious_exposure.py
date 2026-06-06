@@ -21,7 +21,7 @@ def inject_suspicious_exposure(accounts: list[dict], transactions: list[dict], n
         candidates = accounts
 
     suspect = random.choice(candidates)
-    receivers = random.sample([a for a in accounts if a["account_id"] != suspect["account_id"]], min(3, len(accounts) - 1))
+    receivers = random.sample([a for a in accounts if a["account_id"] != suspect["account_id"]], min(2, len(accounts) - 1))
     injected_transactions = []
     ground_truth_entries = [
         {

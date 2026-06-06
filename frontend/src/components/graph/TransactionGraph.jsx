@@ -157,6 +157,16 @@ export default function TransactionGraph({ selectedAccount, selectedReason, sele
           },
         },
         {
+          selector: 'node[account_type = "HighRisk"]',
+          style: {
+            'background-color': '#ef4444',
+            'border-width': 4,
+            'border-color': '#fecaca',
+            width: 64,
+            height: 64,
+          },
+        },
+        {
           selector: 'node.center',
           style: {
             'background-color': '#facc15',

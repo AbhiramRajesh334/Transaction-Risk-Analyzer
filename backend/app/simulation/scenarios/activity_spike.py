@@ -8,7 +8,7 @@ def inject_activity_spike(accounts: list[dict], transactions: list[dict], next_t
     """Inject a compact activity spike scenario into the synthetic dataset."""
     target = random.choice(accounts)
     receivers = [account for account in accounts if account["account_id"] != target["account_id"]]
-    transaction_count = 6
+    transaction_count = 4
     start_time = datetime.utcnow() - timedelta(minutes=15)
 
     created_transactions = []

@@ -329,15 +329,122 @@
   padding: 14px;
 }
 
-.evidence-summary.compact {
-  padding: 0;
-  margin-bottom: 14px;
+.evidence-panel-shell {
+  display: grid;
+  gap: 14px;
 }
 
-.evidence-summary.compact p {
-  margin: 8px 0 0;
+.evidence-story-card,
+.evidence-context-card,
+.evidence-fact-card {
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+  border-radius: 18px;
+  padding: 16px;
+}
+
+.evidence-story-card h3 {
+  margin: 0 0 8px;
+  color: #0f172a;
+  font-size: 1.02rem;
+}
+
+.evidence-story-text {
+  margin: 0;
+  color: #0f172a;
+  line-height: 1.68;
+}
+
+.evidence-story-note {
+  margin: 10px 0 0;
+  color: #2563eb;
+  font-weight: 600;
+  line-height: 1.7;
+}
+
+.evidence-facts-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.evidence-fact-card {
+  display: grid;
+  gap: 4px;
+}
+
+.evidence-fact-label {
+  color: #64748b;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.evidence-fact-value {
+  color: #0f172a;
+  font-size: 1.05rem;
+}
+
+.evidence-fact-note {
   color: #475569;
-  line-height: 1.65;
+  font-size: 0.92rem;
+}
+
+.evidence-context-card h4 {
+  margin: 0 0 4px;
+  color: #0f172a;
+  font-size: 0.98rem;
+}
+
+.evidence-context-card p {
+  margin: 0 0 10px;
+  color: #475569;
+  line-height: 1.55;
+}
+
+.evidence-context-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.evidence-context-pill {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 7px 10px;
+  background: rgba(59, 130, 246, 0.12);
+  color: #1d4ed8;
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.evidence-transaction-list {
+  list-style: none;
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+}
+
+.evidence-transaction-list li {
+  display: grid;
+  gap: 2px;
+  padding: 10px 0;
+  border-top: 1px solid rgba(148, 163, 184, 0.18);
+}
+
+.evidence-transaction-list li:first-child {
+  border-top: none;
+}
+
+.evidence-transaction-list strong {
+  color: #0f172a;
+}
+
+.evidence-transaction-list span {
+  color: #475569;
+  font-size: 0.92rem;
 }
 
 .explainability-row,
@@ -530,6 +637,14 @@
   letter-spacing: -0.02em;
 }
 
+.home-hero-panel p {
+  max-width: 680px;
+  margin-top: 14px;
+  color: #475569;
+  font-size: 1.02rem;
+  line-height: 1.75;
+}
+
 .hero-tag {
   display: inline-flex;
   text-transform: uppercase;
@@ -593,6 +708,12 @@
   background: rgba(59, 130, 246, 0.05);
   border-radius: 22px;
   border: 1px solid rgba(59, 130, 246, 0.16);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.landing-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 32px rgba(15, 23, 42, 0.08);
 }
 
 .landing-card-icon {
@@ -628,6 +749,12 @@
   background: #ffffff;
   border: 1px solid rgba(148, 163, 184, 0.16);
   box-shadow: 0 16px 36px rgba(15, 23, 42, 0.06);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.feature-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 36px rgba(15, 23, 42, 0.1);
 }
 
 .feature-card h3 {

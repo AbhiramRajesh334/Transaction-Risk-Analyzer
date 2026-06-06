@@ -13,6 +13,12 @@ export async function fetchHighRiskAccounts(limit = 10) {
   return handleResponse(res);
 }
 
+export async function fetchHighRiskCategoryAccounts() {
+  const res = await fetch('/api/risk/high-risk');
+  const data = await handleResponse(res);
+  return [...data].sort((a, b) => b.risk_score - a.risk_score);
+}
+
 export async function fetchRiskAccount(accountId) {
   const res = await fetch(`/api/risk/account/${encodeURIComponent(accountId)}`);
   return handleResponse(res);
