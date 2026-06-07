@@ -3,8 +3,13 @@ import HighRiskAccountsPanel from '../components/risk/HighRiskAccountsPanel';
 import TransactionGraph from '../components/graph/TransactionGraph';
 import ExplainabilityPanel from '../components/explainability/ExplainabilityPanel';
 import EvidenceViewer from '../components/evidence/EvidenceViewer';
+import AccountTimeline from '../components/timeline/AccountTimeline';
+import PathTracer from '../components/graph/PathTracer';
+import TransactionFeed from '../components/transactions/TransactionFeed';
 import { fetchHighRiskAccounts, fetchHighRiskCategoryAccounts, fetchRiskAccount, fetchExplainability } from '../api/riskApi';
 import { fetchGraphStats } from '../api/graphApi';
+import { fetchRecentTransactions } from '../api/transactionsApi';
+import { triggerLiveTick } from '../api/simulationApi';
 import '../styles/InvestigationDashboard.css';
 
 export default function InvestigationDashboard({ onBack }) {
@@ -25,6 +30,10 @@ export default function InvestigationDashboard({ onBack }) {
   const [graphStats, setGraphStats] = useState(null);
   const [graphStatsLoading, setGraphStatsLoading] = useState(false);
   const [graphStatsError, setGraphStatsError] = useState(null);
+
+  const [liveFeed, setLiveFeed] = useState([]);
+  const [liveFeedEnabled, setLiveFeedEnabled] = useState(false);
+  const [pathHighlight, setPathHighlight] = useState(null);
 
   const selectedReasonDetails = useMemo(
     () => selectedAccountExplainability?.reasons?.find((reason) => reason.indicator === selectedReason) || selectedAccountExplainability?.reasons?.[0] || null,
@@ -127,6 +136,62 @@ export default function InvestigationDashboard({ onBack }) {
   }, [selectedAccount]);
 
   useEffect(() => {
+    let active = true;
+
+    async function loadFeed() {
+      try {
+        const result = await fetchRecentTransactions(12);
+        if (!active) return;
+        setLiveFeed(
+          (result.transactions || []).map((tx) => ({
+            transactionId: tx.transaction_id,
+            timestamp: new Date(tx.timestamp).toLocaleString(),
+            sender: tx.sender_account,
+            receiver: tx.receiver_account,
+            amount: `₹${Number(tx.amount).toLocaleString()}`,
+          })),
+        );
+      } catch (feedError) {
+        console.error('Failed to load live feed', feedError);
+      }
+    }
+
+    loadFeed();
+    if (!liveFeedEnabled) {
+      return () => {
+        active = false;
+      };
+    }
+
+    const interval = setInterval(async () => {
+      try {
+        await triggerLiveTick(1);
+        const result = await fetchRecentTransactions(12);
+        if (!active) return;
+        setLiveFeed(
+          (result.transactions || []).map((tx) => ({
+            transactionId: tx.transaction_id,
+            timestamp: new Date(tx.timestamp).toLocaleString(),
+            sender: tx.sender_account,
+            receiver: tx.receiver_account,
+            amount: `₹${Number(tx.amount).toLocaleString()}`,
+          })),
+        );
+        const statsResult = await fetchGraphStats();
+        if (!active) return;
+        setGraphStats(statsResult.statistics);
+      } catch (tickError) {
+        console.error('Live feed tick failed', tickError);
+      }
+    }, 5000);
+
+    return () => {
+      active = false;
+      clearInterval(interval);
+    };
+  }, [liveFeedEnabled]);
+
+  useEffect(() => {
     if (!selectedReasonDetails) {
       setSelectedEvidence(null);
       return;
@@ -197,9 +262,44 @@ export default function InvestigationDashboard({ onBack }) {
             selectedAccount={selectedAccount}
             selectedReason={selectedReason}
             selectedEvidence={selectedEvidence}
+            pathHighlight={pathHighlight}
             onNodeSelect={handleAccountSelect}
           />
         </main>
+      </section>
+
+      <section className="investigation-tools-grid">
+        <div className="panel-card">
+          <div className="panel-title-block">
+            <h2 className="panel-title">Account Timeline</h2>
+            <p className="panel-copy">Chronological transaction history for the selected account.</p>
+          </div>
+          <AccountTimeline accountId={selectedAccount} />
+        </div>
+
+        <div className="panel-card">
+          <div className="panel-title-block">
+            <h2 className="panel-title">Fund Flow Path Tracer</h2>
+            <p className="panel-copy">Trace the shortest money movement path between two accounts.</p>
+          </div>
+          <PathTracer
+            defaultSource={selectedAccount}
+            onPathFound={setPathHighlight}
+          />
+        </div>
+
+        <div className="panel-card">
+          <div className="live-feed-header">
+            <TransactionFeed feed={liveFeed} />
+            <button
+              type="button"
+              className={`ghost-button ${liveFeedEnabled ? 'active-live' : ''}`}
+              onClick={() => setLiveFeedEnabled((current) => !current)}
+            >
+              {liveFeedEnabled ? 'Stop live simulation' : 'Start live simulation'}
+            </button>
+          </div>
+        </div>
       </section>
 
       <section className="graph-detail-stack">

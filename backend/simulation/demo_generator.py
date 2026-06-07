@@ -18,6 +18,9 @@ from app.simulation.scenarios.amount_anomaly import inject_amount_anomaly
 from app.simulation.scenarios.rapid_pass_through import inject_rapid_pass_through
 from app.simulation.scenarios.counterparty_explosion import inject_counterparty_explosion
 from app.simulation.scenarios.suspicious_exposure import inject_suspicious_exposure
+from app.simulation.scenarios.round_tripping import inject_round_tripping
+from app.simulation.scenarios.structuring import inject_structuring
+from app.simulation.scenarios.circular_flow import inject_circular_flow
 
 SEED = 42
 
@@ -159,6 +162,9 @@ def generate_demo_dataset() -> dict:
         inject_rapid_pass_through,
         inject_counterparty_explosion,
         inject_suspicious_exposure,
+        inject_round_tripping,
+        inject_structuring,
+        inject_circular_flow,
     ]:
         result = scenario_executor(accounts_db, transactions_db, next_tx_index)
         next_tx_index = result["next_transaction_index"]
@@ -184,9 +190,9 @@ def generate_demo_dataset() -> dict:
         raise ValueError(
             f"Demo dataset must contain exactly 16 accounts, found {len(final_accounts)}."
         )
-    if len(final_transactions) >= 80:
+    if len(final_transactions) >= 100:
         raise ValueError(
-            f"Demo dataset must contain fewer than 80 transactions, found {len(final_transactions)}."
+            f"Demo dataset must contain fewer than 100 transactions, found {len(final_transactions)}."
         )
 
     risk_counts = Counter()

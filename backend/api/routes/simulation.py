@@ -1,10 +1,13 @@
 """Simulation endpoints for synthetic account and transaction generation."""
 
+import random
+from datetime import datetime
+
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
 from services.account_service import count_accounts, insert_accounts, list_accounts
-from services.transaction_service import count_transactions, insert_transactions
+from services.transaction_service import count_transactions, insert_transactions, list_transactions
 from simulation.account_generator import generate_accounts
 from simulation.transaction_generator import generate_transactions
 from app.simulation.fraud_injector import inject_scenarios, list_ground_truth
@@ -72,7 +75,39 @@ def inject_fraud(request: FraudInjectionRequest):
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc))
 
+    graph_manager.refresh_graph()
     return result
+
+
+@router.post("/live-tick")
+def live_tick(count: int = 1):
+    """Inject one or more live transactions to simulate a streaming feed."""
+    accounts = list_accounts()
+    if len(accounts) < 2:
+        raise HTTPException(status_code=400, detail="At least two accounts are required for live ticks.")
+
+    existing = list_transactions()
+    next_index = max(int(tx["transaction_id"].replace("TX", "")) for tx in existing) + 1 if existing else 1
+    created = []
+
+    for offset in range(max(1, min(count, 5))):
+        sender, receiver = random.sample(accounts, 2)
+        amount = round(random.uniform(50.0, 5000.0), 2)
+        transaction = {
+            "transaction_id": f"TX{next_index + offset:06d}",
+            "sender_account": sender["account_id"],
+            "receiver_account": receiver["account_id"],
+            "amount": amount,
+            "timestamp": datetime.utcnow().isoformat(),
+        }
+        insert_transactions([transaction])
+        graph_manager.add_transaction(transaction)
+        created.append(transaction)
+
+    return {
+        "created_transactions": created,
+        "total_transactions": count_transactions(),
+    }
 
 
 @router.get("/ground-truth")
@@ -82,7 +117,7 @@ def get_ground_truth():
 
 @router.post("/generate-demo")
 def generate_demo():
-    """Create a realistic demo dataset and inject five fraud scenarios, then refresh the graph."""
+    """Create a realistic demo dataset and inject fraud scenarios, then refresh the graph."""
     summary = generate_demo_dataset()
     graph_manager.refresh_graph()
     return {"demo_summary": summary, "graph_stats": {"nodes": graph_manager.get_graph().number_of_nodes(), "edges": graph_manager.get_graph().number_of_edges()}}

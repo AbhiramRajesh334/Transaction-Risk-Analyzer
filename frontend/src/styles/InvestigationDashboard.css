@@ -851,6 +851,137 @@
   gap: 24px;
 }
 
+.investigation-tools-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(240px, 1fr));
+  gap: 24px;
+}
+
+.timeline-list,
+.feed-list,
+.path-steps {
+  display: grid;
+  gap: 12px;
+}
+
+.timeline-item,
+.path-step {
+  padding: 14px;
+  border-radius: 16px;
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.timeline-meta,
+.timeline-flow,
+.path-step {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.timeline-direction {
+  font-weight: 700;
+  font-size: 0.82rem;
+  padding: 4px 8px;
+  border-radius: 999px;
+}
+
+.timeline-direction.incoming {
+  background: rgba(52, 211, 153, 0.18);
+  color: #047857;
+}
+
+.timeline-direction.outgoing {
+  background: rgba(96, 165, 250, 0.18);
+  color: #1d4ed8;
+}
+
+.path-tracer-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.path-tracer-form label {
+  display: grid;
+  gap: 6px;
+  color: #475569;
+  font-size: 0.92rem;
+}
+
+.path-tracer-form input {
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  border-radius: 12px;
+  padding: 10px 12px;
+}
+
+.compact-button {
+  align-self: end;
+  padding: 10px 16px;
+}
+
+.live-feed-header {
+  display: grid;
+  gap: 16px;
+}
+
+.active-live {
+  background: rgba(239, 68, 68, 0.12);
+  border-color: rgba(239, 68, 68, 0.35);
+}
+
+.evaluation-table {
+  display: grid;
+  gap: 12px;
+}
+
+.evaluation-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 0;
+  border-top: 1px solid rgba(148, 163, 184, 0.18);
+}
+
+.evaluation-row:first-child {
+  border-top: none;
+}
+
+.evaluation-stats {
+  display: grid;
+  gap: 6px;
+  text-align: right;
+  color: #475569;
+}
+
+.tag-fraud,
+.tag-predicted,
+.tag-normal {
+  display: inline-flex;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.tag-fraud {
+  background: rgba(239, 68, 68, 0.14);
+  color: #b91c1c;
+}
+
+.tag-predicted {
+  background: rgba(245, 158, 11, 0.16);
+  color: #b45309;
+}
+
+.tag-normal {
+  background: rgba(148, 163, 184, 0.16);
+  color: #475569;
+}
+
 .panel-card.explainability-card,
 .panel-card.evidence-panel {
   padding: 24px;
@@ -863,6 +994,7 @@
   .home-summary-cards,
   .feature-grid,
   .investigation-summary-cards,
+  .investigation-tools-grid,
   .home-hero {
     grid-template-columns: 1fr;
   }

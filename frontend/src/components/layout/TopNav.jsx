@@ -22,6 +22,13 @@ export default function TopNav({ currentPage, onNavigate }) {
         >
           Network Graph
         </button>
+        <button
+          type="button"
+          className={`nav-link ${currentPage === 'evaluation' ? 'active' : ''}`}
+          onClick={() => onNavigate('evaluation')}
+        >
+          Evaluation
+        </button>
       </nav>
     </header>
   );

@@ -11,7 +11,12 @@ app.include_router(api_router, prefix="/api")
 
 @app.on_event("startup")
 def on_startup():
+    from services.account_service import count_accounts
+    from simulation.demo_generator import generate_demo_dataset
+
     init_database()
+    if count_accounts() == 0:
+        generate_demo_dataset()
     graph_manager.build_graph()
 
 @app.get("/")

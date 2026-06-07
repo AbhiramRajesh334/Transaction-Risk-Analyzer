@@ -8,6 +8,9 @@ from app.simulation.scenarios.amount_anomaly import inject_amount_anomaly
 from app.simulation.scenarios.rapid_pass_through import inject_rapid_pass_through
 from app.simulation.scenarios.counterparty_explosion import inject_counterparty_explosion
 from app.simulation.scenarios.suspicious_exposure import inject_suspicious_exposure
+from app.simulation.scenarios.round_tripping import inject_round_tripping
+from app.simulation.scenarios.structuring import inject_structuring
+from app.simulation.scenarios.circular_flow import inject_circular_flow
 from database.database import get_db_connection, insert_ground_truth_entries
 from services.account_service import insert_accounts, list_accounts
 from services.transaction_service import insert_transactions, list_transactions
@@ -18,6 +21,9 @@ SCENARIO_MODULES = {
     "rapid_pass_through": inject_rapid_pass_through,
     "counterparty_explosion": inject_counterparty_explosion,
     "suspicious_exposure": inject_suspicious_exposure,
+    "round_tripping": inject_round_tripping,
+    "structuring": inject_structuring,
+    "circular_flow": inject_circular_flow,
 }
 
 

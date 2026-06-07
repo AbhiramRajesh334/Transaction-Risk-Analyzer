@@ -9,6 +9,7 @@ export default function TransactionFeed({ feed }) {
       </div>
 
       <div className="feed-list">
+        {!feed.length && <div className="placeholder-block">No recent transactions yet.</div>}
         {feed.map((item) => (
           <div key={item.transactionId} className="feed-item">
             <div className="feed-header">

@@ -19,6 +19,7 @@ from graph_engine.graph_queries import (
     get_incoming_neighbors,
     get_outgoing_neighbors,
     get_account_degree,
+    account_participates_in_cycle,
 )
 
 
@@ -26,6 +27,40 @@ from graph_engine.graph_queries import (
 _cache: Dict[str, dict] = {}
 _last_tx_count: Optional[int] = None
 _last_refreshed: Optional[datetime] = None
+
+
+STRUCTURING_MIN = 8000.0
+STRUCTURING_MAX = 9999.0
+
+
+def _count_round_trips(transactions: list[dict]) -> int:
+    """Count counterparties where funds were both sent and received."""
+    sent_to: Dict[str, float] = {}
+    received_from: Dict[str, float] = {}
+
+    for tx in transactions:
+        amount = float(tx.get("amount") or 0)
+        if tx.get("direction") == "outgoing":
+            counterparty = tx.get("receiver_account")
+            sent_to[counterparty] = sent_to.get(counterparty, 0.0) + amount
+        else:
+            counterparty = tx.get("sender_account")
+            received_from[counterparty] = received_from.get(counterparty, 0.0) + amount
+
+    round_trips = 0
+    for counterparty, sent_amount in sent_to.items():
+        received_amount = received_from.get(counterparty, 0.0)
+        if received_amount > 0 and min(sent_amount, received_amount) >= 1000:
+            round_trips += 1
+    return round_trips
+
+
+def _count_structuring_transactions(transactions: list[dict]) -> int:
+    return sum(
+        1
+        for tx in transactions
+        if STRUCTURING_MIN <= float(tx.get("amount") or 0) <= STRUCTURING_MAX
+    )
 
 
 def _parse_iso(ts: Optional[str]) -> Optional[datetime]:
@@ -106,6 +141,10 @@ def _compute_features_for_account(account_id: str) -> dict:
         if t >= recent_window:
             recent_activity_count += 1
 
+    round_trip_count = _count_round_trips(transactions)
+    structuring_count = _count_structuring_transactions(transactions)
+    circular_flow_participation = 1 if account_participates_in_cycle(account_id) else 0
+
     features = {
         "account_id": account_id,
         "transaction_count": total_count,
@@ -121,6 +160,9 @@ def _compute_features_for_account(account_id: str) -> dict:
         "velocity": velocity,
         "pass_through_ratio": pass_through_ratio,
         "recent_activity_count": recent_activity_count,
+        "round_trip_count": round_trip_count,
+        "structuring_count": structuring_count,
+        "circular_flow_participation": circular_flow_participation,
     }
 
     return features
@@ -175,6 +217,9 @@ def get_features_for_account(account_id: str) -> dict:
         "velocity": 0.0,
         "pass_through_ratio": None,
         "recent_activity_count": 0,
+        "round_trip_count": 0,
+        "structuring_count": 0,
+        "circular_flow_participation": 0,
     }
 
 

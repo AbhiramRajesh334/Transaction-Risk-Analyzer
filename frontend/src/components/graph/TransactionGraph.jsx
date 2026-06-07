@@ -8,7 +8,7 @@ import { fetchFullGraph } from '../../api/graphApi';
 
 if (coseBilkent) cytoscape.use(coseBilkent);
 
-export default function TransactionGraph({ selectedAccount, selectedReason, selectedEvidence, onNodeSelect }) {
+export default function TransactionGraph({ selectedAccount, selectedReason, selectedEvidence, pathHighlight, onNodeSelect }) {
   const containerRef = useRef(null);
   const cyRef = useRef(null);
   const [loading, setLoading] = useState(true);
@@ -284,7 +284,33 @@ export default function TransactionGraph({ selectedAccount, selectedReason, sele
         cy.nodes().not(cy.getElementById(activeAccount)).addClass('faded');
       }
 
-      if (selectedEvidence) {
+      if (pathHighlight?.found) {
+        const pathAccountIds = new Set(pathHighlight.path_accounts || []);
+        const pathEdgeIds = new Set((pathHighlight.path || []).map((step) => step.transaction_id));
+
+        Array.from(pathAccountIds).forEach((nodeId) => {
+          const node = cy.getElementById(nodeId);
+          if (node) {
+            node.removeClass('faded');
+            node.addClass('highlighted');
+          }
+        });
+
+        Array.from(pathEdgeIds).forEach((edgeId) => {
+          const edge = cy.getElementById(edgeId);
+          if (edge) {
+            edge.removeClass('faded');
+            edge.addClass('highlighted');
+          }
+        });
+
+        cy.nodes().forEach((node) => {
+          if (!node.hasClass('highlighted')) node.addClass('faded');
+        });
+        cy.edges().forEach((edge) => {
+          if (!edge.hasClass('highlighted')) edge.addClass('faded');
+        });
+      } else if (selectedEvidence) {
         const highlightAccountIds = new Set(selectedEvidence.highlight_accounts || []);
         const highlightEdgeIds = new Set(selectedEvidence.highlight_transaction_ids || []);
 
@@ -338,7 +364,7 @@ export default function TransactionGraph({ selectedAccount, selectedReason, sele
         cyRef.current = null;
       }
     };
-  }, [graphData, selectedAccount, showFullNetwork, onNodeSelect]);
+  }, [graphData, selectedAccount, showFullNetwork, onNodeSelect, selectedReason, selectedEvidence, pathHighlight]);
 
   const activeAccount = selectedAccount || graphData?.nodes?.[0]?.id || 'Loading';
   const neighborCount = graphData

@@ -10,11 +10,14 @@ from services.account_service import list_accounts
 
 
 WEIGHTS = {
-    "activity_spike": 0.20,
-    "amount_anomaly": 0.20,
-    "pass_through": 0.25,
-    "counterparty_explosion": 0.15,
-    "suspicious_exposure": 0.20,
+    "activity_spike": 0.14,
+    "amount_anomaly": 0.14,
+    "pass_through": 0.18,
+    "counterparty_explosion": 0.10,
+    "suspicious_exposure": 0.14,
+    "round_tripping": 0.10,
+    "structuring": 0.10,
+    "circular_flow": 0.10,
 }
 
 
@@ -49,9 +52,17 @@ def _build_indicator_breakdown(indicators: dict) -> dict:
 
 def _compute_score(indicators: dict) -> float:
     score = 0.0
+    peak_indicator = 0.0
     for key, weight in WEIGHTS.items():
         indicator = indicators.get(key, {})
-        score += indicator.get("score", 0) * weight
+        indicator_score = indicator.get("score", 0)
+        score += indicator_score * weight
+        peak_indicator = max(peak_indicator, indicator_score)
+
+    # Strong single-signal boost: one very high indicator should pull score up.
+    if peak_indicator >= 80:
+        score += (peak_indicator - 80) * 0.45
+
     return max(0.0, min(100.0, score))
 
 

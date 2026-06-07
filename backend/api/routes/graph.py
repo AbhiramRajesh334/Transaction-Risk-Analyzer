@@ -3,8 +3,10 @@
 from fastapi import APIRouter, HTTPException
 from graph_engine.graph_manager import graph_manager
 from graph_engine.graph_queries import (
+    find_shortest_path,
     get_account_degree,
     get_account_neighbors,
+    get_account_timeline,
     get_account_transactions,
     get_graph_statistics,
     get_incoming_neighbors,
@@ -64,6 +66,45 @@ def get_outgoing(account_id: str):
     if not graph.has_node(account_id):
         raise HTTPException(status_code=404, detail="Account not found in graph.")
     return {"outgoing_neighbors": get_outgoing_neighbors(account_id)}
+
+
+@router.get("/timeline/{account_id}")
+def get_timeline(account_id: str, limit: int = 50):
+    graph = graph_manager.get_graph()
+    if not graph.has_node(account_id):
+        raise HTTPException(status_code=404, detail="Account not found in graph.")
+    return {"account_id": account_id, "timeline": get_account_timeline(account_id, limit=limit)}
+
+
+@router.get("/path/{source}/{target}")
+def get_fund_flow_path(source: str, target: str, max_hops: int = 5):
+    graph = graph_manager.get_graph()
+    if not graph.has_node(source) or not graph.has_node(target):
+        raise HTTPException(status_code=404, detail="Source or target account not found in graph.")
+
+    path = find_shortest_path(source, target, max_hops=max_hops)
+    if not path:
+        return {
+            "source": source,
+            "target": target,
+            "found": False,
+            "path": [],
+            "path_accounts": [],
+        }
+
+    path_accounts = [source]
+    for step in path:
+        if step["receiver_account"] not in path_accounts:
+            path_accounts.append(step["receiver_account"])
+
+    return {
+        "source": source,
+        "target": target,
+        "found": True,
+        "path": path,
+        "path_accounts": path_accounts,
+        "hop_count": len(path),
+    }
 
 
 @router.get("/full")

@@ -15,6 +15,9 @@ INDICATOR_DISPLAY_NAMES = {
     "pass_through": "Rapid Pass Through",
     "counterparty_explosion": "Counterparty Explosion",
     "suspicious_exposure": "Suspicious Exposure",
+    "round_tripping": "Round Tripping",
+    "structuring": "Structuring",
+    "circular_flow": "Circular Flow",
 }
 
 REVERSE_INDICATOR_NAMES = {v: k for k, v in INDICATOR_DISPLAY_NAMES.items()}
@@ -241,12 +244,109 @@ def _explain_suspicious_exposure(account_id: str, indicator: dict) -> dict:
     }
 
 
+def _explain_round_tripping(features: dict, indicator: dict) -> dict:
+    account_id = features.get("account_id")
+    round_trip_count = features.get("round_trip_count", 0)
+    top_transactions = _build_reason_transactions(account_id, limit=4)
+    highlight_accounts = {account_id}
+    for tx in top_transactions:
+        highlight_accounts.add(tx.get("sender_account"))
+        highlight_accounts.add(tx.get("receiver_account"))
+
+    explanation = (
+        f"The account shows {round_trip_count} round-trip counterparty relationship(s) "
+        "where funds were both sent and received. This pattern is suspicious because it can "
+        "indicate layering or attempts to disguise the origin of funds."
+    )
+    evidence = {
+        "round_trip_count": round_trip_count,
+        "components": indicator.get("evidence", {}).get("components", {}),
+        "highlight_accounts": list(filter(None, highlight_accounts)),
+        "highlight_transaction_ids": [tx["transaction_id"] for tx in top_transactions],
+        "supporting_transactions": top_transactions,
+    }
+    return {
+        "indicator": INDICATOR_DISPLAY_NAMES["round_tripping"],
+        "score": indicator.get("score", 0),
+        "explanation": explanation,
+        "evidence": evidence,
+    }
+
+
+def _explain_structuring(features: dict, indicator: dict) -> dict:
+    account_id = features.get("account_id")
+    structuring_count = features.get("structuring_count", 0)
+    transactions = get_account_transactions(account_id)
+    sub_threshold = [
+        tx for tx in transactions
+        if 8000 <= float(tx.get("amount") or 0) <= 9999
+    ][:5]
+
+    explanation = (
+        f"The account executed {structuring_count} transfers in the 8,000-9,999 band. "
+        "Repeated sub-threshold transfers are suspicious because they may be structured "
+        "to avoid reporting limits."
+    )
+    evidence = {
+        "structuring_count": structuring_count,
+        "threshold_band": "8000-9999",
+        "components": indicator.get("evidence", {}).get("components", {}),
+        "highlight_accounts": [account_id] + [
+            tx.get("receiver_account") if tx.get("direction") == "outgoing" else tx.get("sender_account")
+            for tx in sub_threshold
+        ],
+        "highlight_transaction_ids": [tx["transaction_id"] for tx in sub_threshold],
+        "supporting_transactions": sub_threshold,
+    }
+    return {
+        "indicator": INDICATOR_DISPLAY_NAMES["structuring"],
+        "score": indicator.get("score", 0),
+        "explanation": explanation,
+        "evidence": evidence,
+    }
+
+
+def _explain_circular_flow(features: dict, indicator: dict) -> dict:
+    account_id = features.get("account_id")
+    participation = features.get("circular_flow_participation", 0)
+    transactions = get_account_transactions(account_id)[:6]
+    path_accounts = [account_id]
+    for tx in transactions:
+        if tx.get("direction") == "outgoing":
+            path_accounts.append(tx.get("receiver_account"))
+        else:
+            path_accounts.append(tx.get("sender_account"))
+
+    explanation = (
+        "The account participates in a directed fund-flow cycle. "
+        "Circular movement of money is suspicious because it can be used to create "
+        "artificial transaction history or obscure true fund origins."
+    )
+    evidence = {
+        "circular_flow_participation": participation,
+        "path_accounts": list(dict.fromkeys(filter(None, path_accounts))),
+        "components": indicator.get("evidence", {}).get("components", {}),
+        "highlight_accounts": list(dict.fromkeys(filter(None, path_accounts))),
+        "highlight_transaction_ids": [tx["transaction_id"] for tx in transactions],
+        "supporting_transactions": transactions,
+    }
+    return {
+        "indicator": INDICATOR_DISPLAY_NAMES["circular_flow"],
+        "score": indicator.get("score", 0),
+        "explanation": explanation,
+        "evidence": evidence,
+    }
+
+
 EXPLANATION_BUILDERS = {
     "activity_spike": _explain_activity_spike,
     "amount_anomaly": _explain_amount_anomaly,
     "pass_through": _explain_pass_through,
     "counterparty_explosion": _explain_counterparty_explosion,
     "suspicious_exposure": _explain_suspicious_exposure,
+    "round_tripping": _explain_round_tripping,
+    "structuring": _explain_structuring,
+    "circular_flow": _explain_circular_flow,
 }
 
 

@@ -17,3 +17,9 @@ export async function fetchAccountDetails(accountId) {
   if (!res.ok) throw new Error('Failed to fetch account details');
   return res.json();
 }
+
+export async function fetchFundFlowPath(source, target, maxHops = 5) {
+  const res = await fetch(`/api/graph/path/${encodeURIComponent(source)}/${encodeURIComponent(target)}?max_hops=${maxHops}`);
+  if (!res.ok) throw new Error('Failed to fetch fund flow path');
+  return res.json();
+}
