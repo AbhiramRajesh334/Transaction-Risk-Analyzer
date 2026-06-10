@@ -29,12 +29,13 @@ def _risk_level(score: float) -> str:
     return "LOW"
 
 
-def _top_reasons(indicators: dict, limit: int = 2) -> List[str]:
+def _top_reasons(indicators: dict, limit: int = 8) -> List[str]:
     contributions = []
     for key, weight in WEIGHTS.items():
         indicator = indicators.get(key, {})
         score = indicator.get("score", 0)
-        contributions.append((key, score * weight))
+        if score > 0:
+            contributions.append((key, score * weight))
 
     contributions.sort(key=lambda item: item[1], reverse=True)
     return [key.replace("_", " ").title() for key, _ in contributions[:limit]]

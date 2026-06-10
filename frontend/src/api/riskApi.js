@@ -28,3 +28,8 @@ export async function fetchExplainability(accountId) {
   const res = await fetch(`/api/explanations/account/${encodeURIComponent(accountId)}`);
   return handleResponse(res);
 }
+
+export async function fetchAccountFeatures(accountId) {
+  const res = await fetch(`/api/features/account/${encodeURIComponent(accountId)}`);
+  return handleResponse(res);
+}

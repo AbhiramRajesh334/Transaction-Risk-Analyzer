@@ -30,10 +30,22 @@ export default function PathTracer({ defaultSource, defaultTarget, onPathFound }
       }
     } catch (traceError) {
       console.error('Path trace failed', traceError);
-      setError('Unable to trace fund flow path.');
+      setError(traceError.message || 'Unable to trace fund flow path.');
       setPathResult(null);
+      if (typeof onPathFound === 'function') {
+        onPathFound(null);
+      }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleClear = () => {
+    setPathResult(null);
+    setTarget('');
+    setError(null);
+    if (typeof onPathFound === 'function') {
+      onPathFound(null);
     }
   };
 
@@ -48,12 +60,19 @@ export default function PathTracer({ defaultSource, defaultTarget, onPathFound }
           Target
           <input value={target} onChange={(event) => setTarget(event.target.value)} placeholder="e.g. BUS02" />
         </label>
-        <button type="button" className="primary-button compact-button" onClick={handleTrace} disabled={loading}>
-          {loading ? 'Tracing…' : 'Trace path'}
-        </button>
+        <div style={{ display: 'flex', gap: 8, alignSelf: 'end' }}>
+          <button type="button" className="primary-button compact-button" onClick={handleTrace} disabled={loading}>
+            {loading ? 'Tracing…' : 'Trace path'}
+          </button>
+          {pathResult && (
+            <button type="button" className="secondary-button compact-button" onClick={handleClear}>
+              Clear
+            </button>
+          )}
+        </div>
       </div>
 
-      {error && <div className="placeholder-block">{error}</div>}
+      {error && <div className="placeholder-block" style={{ marginTop: 12 }}>{error}</div>}
 
       {pathResult && (
         <div className="path-result">
@@ -73,7 +92,7 @@ export default function PathTracer({ defaultSource, defaultTarget, onPathFound }
               </div>
             </>
           ) : (
-            <div className="placeholder-block">No path found within the hop limit.</div>
+            <div className="placeholder-block" style={{ marginTop: 12 }}>No path found within the hop limit.</div>
           )}
         </div>
       )}

@@ -4,9 +4,8 @@ import TransactionGraph from '../components/graph/TransactionGraph';
 import ExplainabilityPanel from '../components/explainability/ExplainabilityPanel';
 import EvidenceViewer from '../components/evidence/EvidenceViewer';
 import AccountTimeline from '../components/timeline/AccountTimeline';
-import PathTracer from '../components/graph/PathTracer';
 import TransactionFeed from '../components/transactions/TransactionFeed';
-import { fetchHighRiskAccounts, fetchHighRiskCategoryAccounts, fetchRiskAccount, fetchExplainability } from '../api/riskApi';
+import { fetchHighRiskAccounts, fetchHighRiskCategoryAccounts, fetchRiskAccount, fetchExplainability, fetchAccountFeatures } from '../api/riskApi';
 import { fetchGraphStats } from '../api/graphApi';
 import { fetchRecentTransactions } from '../api/transactionsApi';
 import { triggerLiveTick } from '../api/simulationApi';
@@ -24,6 +23,7 @@ export default function InvestigationDashboard({ onBack }) {
 
   const [selectedAccountRisk, setSelectedAccountRisk] = useState(null);
   const [selectedAccountExplainability, setSelectedAccountExplainability] = useState(null);
+  const [selectedAccountFeatures, setSelectedAccountFeatures] = useState(null);
   const [selectedAccountLoading, setSelectedAccountLoading] = useState(false);
   const [selectedAccountError, setSelectedAccountError] = useState(null);
 
@@ -33,7 +33,6 @@ export default function InvestigationDashboard({ onBack }) {
 
   const [liveFeed, setLiveFeed] = useState([]);
   const [liveFeedEnabled, setLiveFeedEnabled] = useState(false);
-  const [pathHighlight, setPathHighlight] = useState(null);
 
   const selectedReasonDetails = useMemo(
     () => selectedAccountExplainability?.reasons?.find((reason) => reason.indicator === selectedReason) || selectedAccountExplainability?.reasons?.[0] || null,
@@ -108,14 +107,20 @@ export default function InvestigationDashboard({ onBack }) {
     setSelectedAccountError(null);
     setSelectedAccountRisk(null);
     setSelectedAccountExplainability(null);
+    setSelectedAccountFeatures(null);
     setSelectedReason(null);
     setSelectedEvidence(null);
 
-    Promise.all([fetchRiskAccount(selectedAccount), fetchExplainability(selectedAccount)])
-      .then(([riskResponse, explainResponse]) => {
+    Promise.all([
+      fetchRiskAccount(selectedAccount),
+      fetchExplainability(selectedAccount),
+      fetchAccountFeatures(selectedAccount)
+    ])
+      .then(([riskResponse, explainResponse, featuresResponse]) => {
         if (!active) return;
         setSelectedAccountRisk(riskResponse);
         setSelectedAccountExplainability(explainResponse);
+        setSelectedAccountFeatures(featuresResponse);
         const initialReason = explainResponse?.reasons?.[0]?.indicator;
         setSelectedReason(initialReason || null);
         setSelectedEvidence(explainResponse?.reasons?.[0]?.evidence || null);
@@ -262,7 +267,6 @@ export default function InvestigationDashboard({ onBack }) {
             selectedAccount={selectedAccount}
             selectedReason={selectedReason}
             selectedEvidence={selectedEvidence}
-            pathHighlight={pathHighlight}
             onNodeSelect={handleAccountSelect}
           />
         </main>
@@ -275,17 +279,6 @@ export default function InvestigationDashboard({ onBack }) {
             <p className="panel-copy">Chronological transaction history for the selected account.</p>
           </div>
           <AccountTimeline accountId={selectedAccount} />
-        </div>
-
-        <div className="panel-card">
-          <div className="panel-title-block">
-            <h2 className="panel-title">Fund Flow Path Tracer</h2>
-            <p className="panel-copy">Trace the shortest money movement path between two accounts.</p>
-          </div>
-          <PathTracer
-            defaultSource={selectedAccount}
-            onPathFound={setPathHighlight}
-          />
         </div>
 
         <div className="panel-card">
@@ -312,6 +305,7 @@ export default function InvestigationDashboard({ onBack }) {
             accountId={selectedAccount}
             accountRisk={selectedAccountRisk}
             accountExplainability={selectedAccountExplainability}
+            accountFeatures={selectedAccountFeatures}
             selectedReason={selectedReason}
             selectedReasonDetails={selectedReasonDetails}
             loading={selectedAccountLoading}

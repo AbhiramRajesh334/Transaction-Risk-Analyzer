@@ -380,12 +380,20 @@ def get_explanation_for_account(account_id: str) -> dict:
     )
 
     if not reasons:
-        # Fallback: return top 2 indicators by score if top_reasons are unavailable.
-        sorted_keys = sorted(
-            indicators.items(),
-            key=lambda item: item[1].get("score", 0),
-            reverse=True,
-        )[:2]
+        # Fallback: return top 8 indicators by score if top_reasons are unavailable.
+        sorted_keys = [
+            item for item in sorted(
+                indicators.items(),
+                key=lambda item: item[1].get("score", 0),
+                reverse=True,
+            ) if item[1].get("score", 0) > 0
+        ][:8]
+        if not sorted_keys:
+            sorted_keys = sorted(
+                indicators.items(),
+                key=lambda item: item[1].get("score", 0),
+                reverse=True,
+            )[:2]
         fallback_reasons = [key for key, _ in sorted_keys]
         reasons = _build_reason_entries(account_id, [INDICATOR_DISPLAY_NAMES[key] for key in fallback_reasons], indicators, features)
 
