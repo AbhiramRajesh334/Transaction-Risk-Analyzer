@@ -15,10 +15,6 @@ const featureHighlights = [
     title: 'Explain every finding',
     description: 'Open evidence-backed summaries that turn complex graph behavior into clear investigation steps.',
   },
-  {
-    title: 'Measure detection quality',
-    description: 'Compare predicted fraud against ground-truth labels with precision, recall, and per-scenario metrics.',
-  },
 ];
 
 export default function HomePage({ onNavigate }) {
