@@ -52,7 +52,7 @@ export default function ExplainabilityPanel({
                   key={reason.indicator}
                   type="button"
                   className={`reason-item ${selectedReason === reason.indicator ? 'selected' : ''}`}
-                  onClick={() => onReasonSelect(reason.indicator)}
+                  onClick={() => onReasonSelect(selectedReason === reason.indicator ? null : reason.indicator)}
                 >
                   <div>
                     <strong>{labelFromIndicator(reason.indicator)}</strong>

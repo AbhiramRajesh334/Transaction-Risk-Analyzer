@@ -35,7 +35,7 @@ export default function InvestigationDashboard({ onBack }) {
   const [liveFeedEnabled, setLiveFeedEnabled] = useState(false);
 
   const selectedReasonDetails = useMemo(
-    () => selectedAccountExplainability?.reasons?.find((reason) => reason.indicator === selectedReason) || selectedAccountExplainability?.reasons?.[0] || null,
+    () => selectedAccountExplainability?.reasons?.find((reason) => reason.indicator === selectedReason) || null,
     [selectedAccountExplainability, selectedReason],
   );
 
@@ -119,11 +119,15 @@ export default function InvestigationDashboard({ onBack }) {
       .then(([riskResponse, explainResponse, featuresResponse]) => {
         if (!active) return;
         setSelectedAccountRisk(riskResponse);
-        setSelectedAccountExplainability(explainResponse);
+        const availableReasons = explainResponse?.reasons || [];
+        const trimmedReasons = availableReasons.length > 3 ? availableReasons.slice(0, 3) : availableReasons;
+        setSelectedAccountExplainability({
+          ...explainResponse,
+          reasons: trimmedReasons,
+        });
         setSelectedAccountFeatures(featuresResponse);
-        const initialReason = explainResponse?.reasons?.[0]?.indicator;
-        setSelectedReason(initialReason || null);
-        setSelectedEvidence(explainResponse?.reasons?.[0]?.evidence || null);
+        setSelectedReason(null);
+        setSelectedEvidence(null);
       })
       .catch((error) => {
         if (!active) return;
@@ -272,29 +276,6 @@ export default function InvestigationDashboard({ onBack }) {
         </main>
       </section>
 
-      <section className="investigation-tools-grid">
-        <div className="panel-card">
-          <div className="panel-title-block">
-            <h2 className="panel-title">Account Timeline</h2>
-            <p className="panel-copy">Chronological transaction history for the selected account.</p>
-          </div>
-          <AccountTimeline accountId={selectedAccount} />
-        </div>
-
-        <div className="panel-card">
-          <div className="live-feed-header">
-            <TransactionFeed feed={liveFeed} />
-            <button
-              type="button"
-              className={`ghost-button ${liveFeedEnabled ? 'active-live' : ''}`}
-              onClick={() => setLiveFeedEnabled((current) => !current)}
-            >
-              {liveFeedEnabled ? 'Stop live simulation' : 'Start live simulation'}
-            </button>
-          </div>
-        </div>
-      </section>
-
       <section className="graph-detail-stack">
         <div className="panel-card explainability-card">
           <div className="panel-title-block">
@@ -325,6 +306,29 @@ export default function InvestigationDashboard({ onBack }) {
             loading={selectedAccountLoading}
             error={selectedAccountError}
           />
+        </div>
+      </section>
+
+      <section className="investigation-tools-grid">
+        <div className="panel-card">
+          <div className="live-feed-header">
+            <TransactionFeed feed={liveFeed} />
+            <button
+              type="button"
+              className={`ghost-button ${liveFeedEnabled ? 'active-live' : ''}`}
+              onClick={() => setLiveFeedEnabled((current) => !current)}
+            >
+              {liveFeedEnabled ? 'Stop live simulation' : 'Start live simulation'}
+            </button>
+          </div>
+        </div>
+
+        <div className="panel-card">
+          <div className="panel-title-block">
+            <h2 className="panel-title">Account Timeline</h2>
+            <p className="panel-copy">Chronological transaction history for the selected account.</p>
+          </div>
+          <AccountTimeline accountId={selectedAccount} />
         </div>
       </section>
     </div>
