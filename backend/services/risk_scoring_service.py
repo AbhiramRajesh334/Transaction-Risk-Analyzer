@@ -10,19 +10,19 @@ from services.account_service import list_accounts
 
 
 WEIGHTS = {
-    "activity_spike": 0.14,
-    "amount_anomaly": 0.14,
-    "pass_through": 0.18,
-    "counterparty_explosion": 0.10,
-    "suspicious_exposure": 0.14,
-    "round_tripping": 0.10,
-    "structuring": 0.10,
-    "circular_flow": 0.10,
+    "activity_spike": 0.12,
+    "amount_anomaly": 0.16,
+    "pass_through": 0.22,
+    "counterparty_explosion": 0.08,
+    "suspicious_exposure": 0.16,
+    "round_tripping": 0.14,
+    "structuring": 0.08,
+    "circular_flow": 0.08,
 }
 
 
 def _risk_level(score: float) -> str:
-    if score >= 70:
+    if score >= 65:
         return "HIGH"
     if score >= 40:
         return "MEDIUM"
