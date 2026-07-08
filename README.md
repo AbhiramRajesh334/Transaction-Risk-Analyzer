@@ -12,6 +12,8 @@ The system ingests transaction streams, builds a dynamic account graph, computes
 - **Network Graph Visualization**: Interactive graph interface built with Cytoscape. Investigators can explore an account's neighborhood, trace incoming/outgoing flows, and visualize full network topologies.
 - **Evidence-Backed Explainability**: Transparent risk scoring that breaks down exactly *why* an account is flagged. Highlights include pass-through ratios, counterparty explosions, and circular flows.
 - **High-Risk Queue**: Automated prioritization of accounts based on behavioral and relational anomalies.
+- **Risk Configurator**: Interactive UI to customize risk thresholds and indicator weights on the fly.
+- **Dark Mode Support**: Comprehensive dark mode for improved accessibility and prolonged monitoring sessions.
 
 ## Architecture & Data Structures
 
