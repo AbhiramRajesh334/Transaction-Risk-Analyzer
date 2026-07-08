@@ -154,7 +154,7 @@ export default function InvestigationDashboard({ onBack }) {
         setLiveFeed(
           (result.transactions || []).map((tx) => ({
             transactionId: tx.transaction_id,
-            timestamp: new Date(tx.timestamp).toLocaleString(),
+            timestamp: new Date(tx.timestamp + (tx.timestamp.includes('Z') ? '' : 'Z')).toLocaleString(),
             sender: tx.sender_account,
             receiver: tx.receiver_account,
             amount: `₹${Number(tx.amount).toLocaleString()}`,
@@ -180,7 +180,7 @@ export default function InvestigationDashboard({ onBack }) {
         setLiveFeed(
           (result.transactions || []).map((tx) => ({
             transactionId: tx.transaction_id,
-            timestamp: new Date(tx.timestamp).toLocaleString(),
+            timestamp: new Date(tx.timestamp + (tx.timestamp.includes('Z') ? '' : 'Z')).toLocaleString(),
             sender: tx.sender_account,
             receiver: tx.receiver_account,
             amount: `₹${Number(tx.amount).toLocaleString()}`,
@@ -317,6 +317,7 @@ export default function InvestigationDashboard({ onBack }) {
               type="button"
               className={`ghost-button ${liveFeedEnabled ? 'active-live' : ''}`}
               onClick={() => setLiveFeedEnabled((current) => !current)}
+              style={{ color: '#ef4444' }}
             >
               {liveFeedEnabled ? 'Stop live simulation' : 'Start live simulation'}
             </button>

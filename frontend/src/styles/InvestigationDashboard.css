@@ -1014,3 +1014,210 @@
     padding: 18px;
   }
 }
+
+/* Dark Mode Overrides */
+body.dark-mode,
+.app-shell.dark-mode,
+.dark-mode .dashboard-shell,
+.dark-mode .home-shell {
+  background: radial-gradient(circle at top, rgba(30, 58, 138, 0.2), transparent 20%), #0f172a;
+  color: #e2e8f0;
+}
+
+.dark-mode .dashboard-header {
+  background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+}
+
+.dark-mode .dashboard-header,
+.dark-mode .panel-card,
+.dark-mode .header-card,
+.dark-mode .header-stats,
+.dark-mode .risk-breakdown-card,
+.dark-mode .table-container,
+.dark-mode .timeline-item {
+  background: rgba(30, 41, 59, 0.95);
+  border-color: rgba(59, 130, 246, 0.16);
+  color: #f8fafc;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.dark-mode .top-nav {
+  background: #1e293b;
+  border-bottom: 1px solid rgba(59, 130, 246, 0.16);
+}
+
+.dark-mode .top-nav-brand {
+  color: #f8fafc;
+}
+.dark-mode .top-nav-brand span {
+  color: #94a3b8;
+}
+
+.dark-mode .header-copy h1,
+.dark-mode .header-card-value,
+.dark-mode .panel-header h2,
+.dark-mode .stat-value {
+  color: #f8fafc;
+}
+
+.dark-mode .header-copy p,
+.dark-mode .header-card-label,
+.dark-mode .status-detail,
+.dark-mode .nav-link,
+.dark-mode .stat-label {
+  color: #94a3b8;
+}
+
+.dark-mode .nav-link:hover,
+.dark-mode .nav-link.active {
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.1);
+}
+
+.dark-mode table th {
+  background: #1e293b;
+  color: #94a3b8;
+  border-bottom-color: #334155;
+}
+
+.dark-mode table td {
+  border-bottom-color: #334155;
+  color: #cbd5e1;
+}
+
+.dark-mode tr:hover td {
+  background: rgba(51, 65, 85, 0.5);
+}
+
+.dark-mode .risk-badge.high {
+  background: rgba(239, 68, 68, 0.2);
+  color: #fca5a5;
+}
+.dark-mode .risk-badge.medium {
+  background: rgba(245, 158, 11, 0.2);
+  color: #fcd34d;
+}
+.dark-mode .risk-badge.low {
+  background: rgba(34, 197, 94, 0.2);
+  color: #86efac;
+}
+
+.dark-mode .theme-toggle {
+  background: #334155;
+  border: 1px solid #475569;
+  border-radius: 20px;
+  padding: 4px 12px;
+  color: #e2e8f0;
+  transition: all 0.2s ease;
+}
+.dark-mode .theme-toggle:hover {
+  background: #475569;
+}
+
+/* Home Page Dark Mode */
+.dark-mode .home-hero {
+  background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+  border-color: rgba(59, 130, 246, 0.16);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+}
+
+.dark-mode .hero-tag {
+  color: #38bdf8;
+}
+
+.dark-mode .home-hero-panel h1 {
+  color: #f8fafc;
+}
+
+.dark-mode .home-hero-panel p {
+  color: #94a3b8;
+}
+
+.dark-mode .landing-card,
+.dark-mode .feature-card {
+  background: rgba(30, 41, 59, 0.95);
+  border-color: rgba(59, 130, 246, 0.16);
+}
+
+.dark-mode .landing-card strong,
+.dark-mode .feature-card h3 {
+  color: #f8fafc;
+}
+
+.dark-mode .landing-card p,
+.dark-mode .feature-card p {
+  color: #94a3b8;
+}
+
+.dark-mode .landing-card-icon {
+  background: rgba(56, 189, 248, 0.15);
+}
+
+/* Dashboard Internal Components Dark Mode */
+.dark-mode .page-header {
+  background: rgba(30, 41, 59, 0.95);
+  border-color: rgba(59, 130, 246, 0.16);
+}
+.dark-mode .page-header h1 {
+  color: #f8fafc;
+}
+
+.dark-mode .summary-chip {
+  background: rgba(30, 41, 59, 0.95);
+  border-color: rgba(59, 130, 246, 0.16);
+}
+.dark-mode .summary-chip strong {
+  color: #f8fafc;
+}
+.dark-mode .summary-chip-label {
+  color: #94a3b8;
+}
+
+.dark-mode .explainability-card,
+.dark-mode .evidence-card,
+.dark-mode .feed-item,
+.dark-mode .risk-item,
+.dark-mode .reason-item,
+.dark-mode .account-detail-grid {
+  background: rgba(15, 23, 42, 0.4);
+  border-color: rgba(59, 130, 246, 0.16);
+  color: #e2e8f0;
+}
+
+.dark-mode .risk-item:hover,
+.dark-mode .reason-item:hover,
+.dark-mode .feed-item:hover,
+.dark-mode .evidence-card:hover {
+  background: rgba(30, 41, 59, 0.8);
+  border-color: rgba(56, 189, 248, 0.4);
+}
+
+.dark-mode .risk-item.selected,
+.dark-mode .reason-item.selected {
+  background: rgba(56, 189, 248, 0.15);
+  border-color: #38bdf8;
+}
+
+.dark-mode .reason-item strong,
+.dark-mode .account-detail-label {
+  color: #f8fafc;
+}
+.dark-mode .reason-item p,
+.dark-mode .risk-detail,
+.dark-mode .risk-meta {
+  color: #94a3b8;
+}
+
+.dark-mode .panel-copy {
+  color: #94a3b8;
+}
+
+.dark-mode .graph-canvas {
+  background: transparent;
+}
+
+.dark-mode .ghost-button {
+  color: #f8fafc;
+  border-color: rgba(56, 189, 248, 0.4);
+}
+

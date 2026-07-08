@@ -1,0 +1,70 @@
+Fraud Detection Algorithms and Explanations
+==========================================
+
+This document provides a concise, human‑readable description of the algorithms used by the **Transaction Risk Analyzer** backend to detect various types of fraudulent behaviour.  The implementation lives primarily in `backend/services/explainability_service.py`.  Each fraud indicator has a dedicated “explanation builder” function that receives **features** (derived from raw transaction data) and an **indicator** (the risk score and raw evidence) and then produces a textual explanation and a structured evidence payload.
+
+---
+
+## 1. High‑level detection pipeline
+1. **Feature extraction** – `services/behavioral_feature_service.py` aggregates per‑account statistics (transaction counts, amounts, velocity, counterparties, etc.) and returns a dictionary called `features`.
+2. **Risk indicator calculation** – `services/risk_indicator_service.py` evaluates those features against business rules and statistical thresholds, emitting an `indicator` for each possible fraud pattern.  Each indicator contains a `score` and a raw `evidence` dict.
+3. **Explanation building** – `explainability_service.py` maps each indicator key to a builder function via the `EXPLANATION_BUILDERS` registry. The builder crafts a natural‑language explanation and a structured `evidence` object that the UI highlights.
+4. **Aggregation** – `get_explanation_for_account` collects the top‑scoring reasons (or falls back to the highest‑score indicators) and returns a JSON payload consumed by the frontend.
+
+---
+
+## 2. Fraud Types, Detection Logic, and Explanation Algorithms
+| Fraud Type               | Indicator Key            | Core Features Used                                            | Detection Logic (algorithm)                                                                                                                                                 | Explanation Builder (function)            |
+|--------------------------|--------------------------|---------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------|
+| Activity Spike           | `activity_spike`         | `transaction_count`, `recent_activity_count`, `velocity`    | Detects a sudden increase in transaction volume in the last 7 days, measured as a high **velocity** (transactions per hour) compared to the account’s historical average.       | `_explain_activity_spike`                |
+| Amount Anomaly           | `amount_anomaly`         | `average_amount`, `max_amount`                                 | Flags when individual transaction amounts deviate far from the account’s average (e.g., a max amount that is an order of magnitude larger).                                    | `_explain_amount_anomaly`                |
+| Pass‑Through             | `pass_through`           | `incoming_amount`, `outgoing_amount`, `pass_through_ratio`   | Computes the ratio of outgoing to incoming funds. A high ratio suggests the account is merely forwarding money without retaining value.                                          | `_explain_pass_through`                  |
+| Counterparty Explosion   | `counterparty_explosion` | `unique_counterparties`, `in_degree`, `out_degree`            | Counts distinct counterparties and degree of connections. A rapid rise indicates possible layering or network expansion.                                                    | `_explain_counterparty_explosion`        |
+| Suspicious Exposure      | `suspicious_exposure`    | `neighbor_count`, `suspicious_neighbor_count`, `top_neighbors` | Looks at the number of high‑risk accounts linked to the subject account. A high count raises exposure risk.                                                               | `_explain_suspicious_exposure`           |
+| Round‑Tripping           | `round_tripping`         | `round_trip_count`                                            | Detects cycles where funds are sent and later received from the same counterparties (multiple round‑trip occurrences).                                                      | `_explain_round_tripping`                |
+| Structuring              | `structuring`            | `structuring_count`, transaction amounts in the $8,000‑$9,999 band | Flags repeated sub‑threshold transfers that may be used to avoid reporting limits.                                                                                           | `_explain_structuring`                   |
+| Circular Flow            | `circular_flow`          | `circular_flow_participation`, transaction direction           | Detects a directed fund‑flow cycle across a short path (e.g., 6 hops).                                                                                                      | `_explain_circular_flow`                 |
+
+---
+
+## 3. Explanation Builder Pattern (Code Summary)
+```python
+# Registry mapping indicator keys to builder functions
+EXPLANATION_BUILDERS = {
+    "activity_spike": _explain_activity_spike,
+    "amount_anomaly": _explain_amount_anomaly,
+    "pass_through": _explain_pass_through,
+    "counterparty_explosion": _explain_counterparty_explosion,
+    "suspicious_exposure": _explain_suspicious_exposure,
+    "round_tripping": _explain_round_tripping,
+    "structuring": _explain_structuring,
+    "circular_flow": _explain_circular_flow,
+}
+```
+Each builder follows the same contract:
+```python
+def _explain_<type>(features: dict, indicator: dict) -> dict:
+    # 1. Pull needed feature values
+    # 2. Build a human‑readable explanation string
+    # 3. Assemble an `evidence` dict with values the UI will highlight
+    # 4. Return a dict containing:
+    #       "indicator": human readable name,
+    #       "score": indicator["score"],
+    #       "explanation": explanation,
+    #       "evidence": evidence
+```
+The UI (frontend) consumes `explanation` for the tooltip and `evidence.highlight_*` arrays to draw graph‑node/edge highlights.
+
+---
+
+## 4. Extending the System
+*To add a new fraud type*:
+1. Define the feature extraction in `behavioral_feature_service.py`.
+2. Add a risk‑scoring rule in `risk_indicator_service.py` that returns an indicator with a unique key.
+3. Implement a new `_explain_<new_type>` builder following the pattern above.
+4. Register the builder in `EXPLANATION_BUILDERS`.
+5. The aggregation logic in `get_explanation_for_account` will automatically surface the new reason when its score is high.
+
+---
+
+**File location**: `backend/docs/fraud_detection_explanation.txt`

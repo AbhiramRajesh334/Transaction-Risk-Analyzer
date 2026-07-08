@@ -1,6 +1,6 @@
 import React from 'react';
 
-export default function TopNav({ currentPage, onNavigate }) {
+export default function TopNav({ currentPage, onNavigate, isDarkMode, toggleDarkMode }) {
   return (
     <header className="top-nav">
       <div className="top-nav-brand">
@@ -21,6 +21,14 @@ export default function TopNav({ currentPage, onNavigate }) {
           onClick={() => onNavigate('network')}
         >
           Network Graph
+        </button>
+        <button
+          type="button"
+          className="nav-link theme-toggle"
+          onClick={toggleDarkMode}
+          style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '8px' }}
+        >
+          {isDarkMode ? '☀️ Light' : '🌙 Dark'}
         </button>
       </nav>
     </header>
