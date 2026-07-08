@@ -149,7 +149,6 @@
   flex-direction: column;
   min-height: 620px;
   max-height: min(780px, 85vh);
-  overflow: hidden;
   border: 1px solid rgba(59, 130, 246, 0.18);
 }
 
@@ -547,11 +546,114 @@
   background: #f8fafc;
   height: 100%;
   width: 100%;
-  min-height: 520px;
+  min-height: 300px;
   border-radius: 22px;
   border: 1px solid rgba(59, 130, 246, 0.18);
   overflow: hidden;
 }
+
+/* Floating zoom controls */
+.graph-zoom-controls {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  z-index: 10;
+}
+
+.graph-zoom-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid rgba(59, 130, 246, 0.28);
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(8px);
+  color: #0f172a;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.18s ease, transform 0.12s ease;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.1);
+}
+
+.graph-zoom-btn:hover {
+  background: rgba(59, 130, 246, 0.12);
+  transform: scale(1.08);
+}
+
+/* Graph legend */
+.graph-legend {
+  position: absolute;
+  bottom: 14px;
+  left: 14px;
+  z-index: 10;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(59, 130, 246, 0.16);
+  border-radius: 14px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  box-shadow: 0 4px 18px rgba(15, 23, 42, 0.1);
+}
+
+.graph-legend-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #475569;
+  letter-spacing: 0.01em;
+}
+
+.graph-legend-dot {
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  flex-shrink: 0;
+}
+
+.graph-legend-edge {
+  width: 18px;
+  height: 3px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.graph-legend-divider {
+  height: 1px;
+  background: rgba(148, 163, 184, 0.3);
+  margin: 2px 0;
+}
+
+/* Dark mode for zoom controls and legend */
+.dark-mode .graph-zoom-btn {
+  background: rgba(30, 41, 59, 0.92);
+  border-color: rgba(56, 189, 248, 0.3);
+  color: #e2e8f0;
+}
+
+.dark-mode .graph-zoom-btn:hover {
+  background: rgba(51, 65, 85, 0.95);
+}
+
+.dark-mode .graph-legend {
+  background: rgba(15, 23, 42, 0.88);
+  border-color: rgba(56, 189, 248, 0.2);
+}
+
+.dark-mode .graph-legend-row {
+  color: #94a3b8;
+}
+
 
 .top-nav {
   display: flex;
@@ -988,6 +1090,7 @@
 }
 
 @media (max-width: 1120px) {
+
   .dashboard-main,
   .dashboard-bottom,
   .investigation-grid,
@@ -1049,6 +1152,7 @@ body.dark-mode,
 .dark-mode .top-nav-brand {
   color: #f8fafc;
 }
+
 .dark-mode .top-nav-brand span {
   color: #94a3b8;
 }
@@ -1093,10 +1197,12 @@ body.dark-mode,
   background: rgba(239, 68, 68, 0.2);
   color: #fca5a5;
 }
+
 .dark-mode .risk-badge.medium {
   background: rgba(245, 158, 11, 0.2);
   color: #fcd34d;
 }
+
 .dark-mode .risk-badge.low {
   background: rgba(34, 197, 94, 0.2);
   color: #86efac;
@@ -1110,6 +1216,7 @@ body.dark-mode,
   color: #e2e8f0;
   transition: all 0.2s ease;
 }
+
 .dark-mode .theme-toggle:hover {
   background: #475569;
 }
@@ -1158,6 +1265,7 @@ body.dark-mode,
   background: rgba(30, 41, 59, 0.95);
   border-color: rgba(59, 130, 246, 0.16);
 }
+
 .dark-mode .page-header h1 {
   color: #f8fafc;
 }
@@ -1166,9 +1274,11 @@ body.dark-mode,
   background: rgba(30, 41, 59, 0.95);
   border-color: rgba(59, 130, 246, 0.16);
 }
+
 .dark-mode .summary-chip strong {
   color: #f8fafc;
 }
+
 .dark-mode .summary-chip-label {
   color: #94a3b8;
 }
@@ -1202,6 +1312,7 @@ body.dark-mode,
 .dark-mode .account-detail-label {
   color: #f8fafc;
 }
+
 .dark-mode .reason-item p,
 .dark-mode .risk-detail,
 .dark-mode .risk-meta {
@@ -1209,15 +1320,313 @@ body.dark-mode,
 }
 
 .dark-mode .panel-copy {
-  color: #94a3b8;
+  color: #e2e8f0 !important;
 }
 
 .dark-mode .graph-canvas {
   background: transparent;
 }
 
-.dark-mode .ghost-button {
-  color: #f8fafc;
-  border-color: rgba(56, 189, 248, 0.4);
+/* Hard Overrides for Dark Mode Readability */
+.dark-mode .summary-chip p,
+.dark-mode .eyebrow {
+  color: #cbd5e1 !important;
 }
 
+.dark-mode .ghost-button {
+  color: #f8fafc !important;
+  border-color: rgba(56, 189, 248, 0.4) !important;
+}
+
+/* ============================================================
+   COMPREHENSIVE DARK MODE — covers every remaining element
+   ============================================================ */
+
+/* Base text that inherits dark background */
+.dark-mode,
+.dark-mode * {
+  --text-primary: #f1f5f9;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
+  --panel-bg: rgba(30, 41, 59, 0.95);
+  --panel-border: rgba(59, 130, 246, 0.18);
+}
+
+/* Summary chips */
+.dark-mode .summary-chip p,
+.dark-mode .eyebrow {
+  color: #cbd5e1 !important;
+}
+
+/* Graph focus label */
+.dark-mode .graph-focus-label {
+  color: #f1f5f9;
+}
+
+/* All panel headings and copy text */
+.dark-mode .panel-title {
+  color: #f1f5f9;
+}
+
+/* Evidence cards inner elements */
+.dark-mode .evidence-story-card,
+.dark-mode .evidence-context-card,
+.dark-mode .evidence-fact-card {
+  background: rgba(15, 23, 42, 0.55);
+  border-color: rgba(59, 130, 246, 0.2);
+}
+
+.dark-mode .evidence-story-card h3,
+.dark-mode .evidence-story-text {
+  color: #e2e8f0;
+}
+
+.dark-mode .evidence-story-note {
+  color: #7dd3fc;
+}
+
+.dark-mode .evidence-fact-label {
+  color: #94a3b8;
+}
+
+.dark-mode .evidence-fact-value {
+  color: #f1f5f9;
+}
+
+.dark-mode .evidence-fact-note {
+  color: #94a3b8;
+}
+
+.dark-mode .evidence-context-card h4 {
+  color: #f1f5f9;
+}
+
+.dark-mode .evidence-context-card p {
+  color: #cbd5e1;
+}
+
+.dark-mode .evidence-context-pill {
+  background: rgba(56, 189, 248, 0.15);
+  color: #7dd3fc;
+}
+
+.dark-mode .evidence-transaction-list strong {
+  color: #f1f5f9;
+}
+
+.dark-mode .evidence-transaction-list span {
+  color: #94a3b8;
+}
+
+/* Explainability */
+.dark-mode .explainability-header h3 {
+  color: #f1f5f9;
+}
+
+.dark-mode .explainability-header p {
+  color: #cbd5e1;
+}
+
+.dark-mode .explain-label {
+  color: #cbd5e1;
+}
+
+.dark-mode .account-detail-grid {
+  background: rgba(15, 23, 42, 0.5);
+}
+
+.dark-mode .account-detail-grid div:nth-child(2n) {
+  color: #e2e8f0;
+}
+
+/* Timeline */
+.dark-mode .timeline-item {
+  background: rgba(15, 23, 42, 0.5) !important;
+  color: #e2e8f0;
+}
+
+.dark-mode .timeline-direction.incoming {
+  background: rgba(52, 211, 153, 0.2);
+  color: #6ee7b7;
+}
+
+.dark-mode .timeline-direction.outgoing {
+  background: rgba(96, 165, 250, 0.2);
+  color: #93c5fd;
+}
+
+/* Path tracer form */
+.dark-mode .path-tracer-form label {
+  color: #cbd5e1;
+}
+
+.dark-mode .path-tracer-form input {
+  background: rgba(15, 23, 42, 0.6);
+  border-color: rgba(148, 163, 184, 0.3);
+  color: #f1f5f9;
+}
+
+.dark-mode .path-tracer-form input::placeholder {
+  color: #64748b;
+}
+
+/* All inputs and selects */
+.dark-mode input,
+.dark-mode select,
+.dark-mode textarea {
+  background: rgba(15, 23, 42, 0.6) !important;
+  border-color: rgba(148, 163, 184, 0.3) !important;
+  color: #f1f5f9 !important;
+}
+
+.dark-mode input::placeholder,
+.dark-mode textarea::placeholder {
+  color: #64748b !important;
+}
+
+/* Feed items */
+.dark-mode .feed-item {
+  color: #e2e8f0;
+}
+
+/* Tags */
+.dark-mode .tag-fraud {
+  background: rgba(239, 68, 68, 0.22);
+  color: #fca5a5;
+}
+
+.dark-mode .tag-predicted {
+  background: rgba(245, 158, 11, 0.22);
+  color: #fde68a;
+}
+
+.dark-mode .tag-normal {
+  background: rgba(148, 163, 184, 0.22);
+  color: #cbd5e1;
+}
+
+/* risk-detail and risk-meta — make readable */
+.dark-mode .risk-detail {
+  color: #94a3b8 !important;
+}
+
+.dark-mode .risk-meta {
+  color: #94a3b8 !important;
+}
+
+/* evidence-path */
+.dark-mode .evidence-path {
+  color: #94a3b8;
+}
+
+/* evidence-meta spans */
+.dark-mode .evidence-meta span {
+  color: #94a3b8;
+}
+
+/* secondary-button */
+.dark-mode .secondary-button {
+  background: rgba(59, 130, 246, 0.18);
+  border-color: rgba(59, 130, 246, 0.3);
+  color: #e2e8f0;
+}
+
+/* feature-card text */
+.dark-mode .feature-card p {
+  color: #cbd5e1;
+}
+
+/* home hero paragraph */
+.dark-mode .home-hero-panel p {
+  color: #94a3b8 !important;
+}
+
+/* header-copy paragraph */
+.dark-mode .header-copy p {
+  color: #cbd5e1 !important;
+}
+
+/* Summary chip overrides */
+.dark-mode .summary-chip {
+  background: rgba(30, 41, 59, 0.95);
+  border-color: rgba(59, 130, 246, 0.16);
+}
+
+.dark-mode .summary-chip strong {
+  color: #f8fafc;
+}
+
+.dark-mode .summary-chip-label,
+.dark-mode .summary-chip p {
+  color: #94a3b8 !important;
+}
+
+/* reason-item paragraphs */
+.dark-mode .reason-item p {
+  color: #cbd5e1 !important;
+}
+
+/* panel-card sub-text */
+.dark-mode .panel-card p:not(.panel-title):not(.panel-copy) {
+  color: #cbd5e1;
+}
+
+/* section-label */
+.dark-mode .section-label {
+  color: #38bdf8;
+}
+
+/* Evaluation table */
+.dark-mode .evaluation-stats {
+  color: #94a3b8;
+}
+
+.dark-mode .evaluation-row {
+  border-top-color: rgba(71, 85, 105, 0.4);
+}
+
+/* Placeholder blocks */
+.dark-mode .placeholder-block {
+  color: #64748b;
+  border-color: rgba(71, 85, 105, 0.3);
+  background: rgba(15, 23, 42, 0.3);
+}
+
+/* path step */
+.dark-mode .path-step {
+  background: rgba(15, 23, 42, 0.5);
+  color: #e2e8f0;
+}
+
+.dark-mode .path-step-index {
+  color: #7dd3fc;
+}
+
+/* path result */
+.dark-mode .path-result {
+  color: #e2e8f0;
+}
+
+/* active-live pill */
+.dark-mode .active-live {
+  background: rgba(239, 68, 68, 0.18);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #fca5a5 !important;
+}
+
+/* header-stats sub text */
+.dark-mode .header-stats ul {
+  color: #94a3b8;
+}
+
+.dark-mode .header-stats li strong {
+  color: #f1f5f9;
+}
+
+/* investigation shell headings that inherit color */
+.dark-mode .investigation-shell h1,
+.dark-mode .investigation-shell h2,
+.dark-mode .investigation-shell h3 {
+  color: #f1f5f9;
+}
+

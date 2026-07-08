@@ -5,7 +5,10 @@ import ExplainabilityPanel from '../components/explainability/ExplainabilityPane
 import EvidenceViewer from '../components/evidence/EvidenceViewer';
 import AccountTimeline from '../components/timeline/AccountTimeline';
 import TransactionFeed from '../components/transactions/TransactionFeed';
-import { fetchHighRiskAccounts, fetchHighRiskCategoryAccounts, fetchRiskAccount, fetchExplainability, fetchAccountFeatures } from '../api/riskApi';
+import PathTracer from '../components/graph/PathTracer';
+import RiskConfigurator from '../components/risk/RiskConfigurator';
+import TypologyScanner from '../components/risk/TypologyScanner';
+import { fetchHighRiskAccounts, fetchHighRiskCategoryAccounts, fetchRiskAccount, fetchRiskAccountWithWeights, fetchExplainability, fetchExplainabilityWithWeights, fetchAccountFeatures } from '../api/riskApi';
 import { fetchGraphStats } from '../api/graphApi';
 import { fetchRecentTransactions } from '../api/transactionsApi';
 import { triggerLiveTick } from '../api/simulationApi';
@@ -14,12 +17,23 @@ import '../styles/InvestigationDashboard.css';
 export default function InvestigationDashboard({ onBack }) {
   const [highRiskAccounts, setHighRiskAccounts] = useState([]);
   const [highRiskCategoryCount, setHighRiskCategoryCount] = useState(0);
+  const [lowRiskCategoryCount, setLowRiskCategoryCount] = useState(0);
   const [highRiskLoading, setHighRiskLoading] = useState(false);
   const [highRiskError, setHighRiskError] = useState(null);
+  
+  const [sidebarTab, setSidebarTab] = useState('risk'); // 'risk' | 'timeline' | 'tracer' | 'config'
 
   const [selectedAccount, setSelectedAccount] = useState(null);
   const [selectedReason, setSelectedReason] = useState(null);
   const [selectedEvidence, setSelectedEvidence] = useState(null);
+
+  // Custom weights from the What-If configurator (null = use defaults).
+  const [customWeights, setCustomWeights] = useState(() => {
+    try {
+      const saved = localStorage.getItem('tra_custom_weights');
+      return saved ? JSON.parse(saved) : null;
+    } catch (_) { return null; }
+  });
 
   const [selectedAccountRisk, setSelectedAccountRisk] = useState(null);
   const [selectedAccountExplainability, setSelectedAccountExplainability] = useState(null);
@@ -49,6 +63,7 @@ export default function InvestigationDashboard({ onBack }) {
         if (!active) return;
         setHighRiskAccounts(rankedAccounts);
         setHighRiskCategoryCount(highRiskAccountsOnly.length);
+        setLowRiskCategoryCount(rankedAccounts.filter(a => a.risk_level === 'LOW').length);
         if (!selectedAccount && rankedAccounts.length > 0) {
           setSelectedAccount(rankedAccounts[0].account_id);
         }
@@ -112,8 +127,8 @@ export default function InvestigationDashboard({ onBack }) {
     setSelectedEvidence(null);
 
     Promise.all([
-      fetchRiskAccount(selectedAccount),
-      fetchExplainability(selectedAccount),
+      customWeights ? fetchRiskAccountWithWeights(selectedAccount, customWeights) : fetchRiskAccount(selectedAccount),
+      customWeights ? fetchExplainabilityWithWeights(selectedAccount, customWeights) : fetchExplainability(selectedAccount),
       fetchAccountFeatures(selectedAccount)
     ])
       .then(([riskResponse, explainResponse, featuresResponse]) => {
@@ -154,7 +169,7 @@ export default function InvestigationDashboard({ onBack }) {
         setLiveFeed(
           (result.transactions || []).map((tx) => ({
             transactionId: tx.transaction_id,
-            timestamp: new Date(tx.timestamp + (tx.timestamp.includes('Z') ? '' : 'Z')).toLocaleString(),
+            timestamp: new Date(tx.timestamp).toLocaleString(),
             sender: tx.sender_account,
             receiver: tx.receiver_account,
             amount: `₹${Number(tx.amount).toLocaleString()}`,
@@ -180,7 +195,7 @@ export default function InvestigationDashboard({ onBack }) {
         setLiveFeed(
           (result.transactions || []).map((tx) => ({
             transactionId: tx.transaction_id,
-            timestamp: new Date(tx.timestamp + (tx.timestamp.includes('Z') ? '' : 'Z')).toLocaleString(),
+            timestamp: new Date(tx.timestamp).toLocaleString(),
             sender: tx.sender_account,
             receiver: tx.receiver_account,
             amount: `₹${Number(tx.amount).toLocaleString()}`,
@@ -236,8 +251,13 @@ export default function InvestigationDashboard({ onBack }) {
       <div className="investigation-summary-cards">
         <div className="summary-chip">
           <span className="summary-chip-label">High-risk queue</span>
-          <strong>{highRiskCategoryCount}</strong>
+          <strong style={{ color: '#ef4444' }}>{highRiskCategoryCount}</strong>
           <p>{highRiskLoading ? 'Updating…' : 'Accounts flagged for review'}</p>
+        </div>
+        <div className="summary-chip">
+          <span className="summary-chip-label">Low-risk accounts</span>
+          <strong style={{ color: '#10b981' }}>{lowRiskCategoryCount}</strong>
+          <p>Accounts with minimal risk signals</p>
         </div>
         <div className="summary-chip">
           <span className="summary-chip-label">Active accounts</span>
@@ -252,14 +272,65 @@ export default function InvestigationDashboard({ onBack }) {
       </div>
 
       <section className="investigation-grid">
-        <aside className="panel-card risk-card">
-          <HighRiskAccountsPanel
-            accounts={highRiskAccounts}
-            selectedAccount={selectedAccount}
-            loading={highRiskLoading}
-            error={highRiskError}
-            onAccountSelect={handleAccountSelect}
-          />
+        <aside className="panel-card risk-card" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div style={{ display: 'flex', gap: '4px', borderBottom: '1px solid rgba(148, 163, 184, 0.3)', paddingBottom: '12px' }}>
+            <button type="button" onClick={() => setSidebarTab('risk')} className={`ghost-button ${sidebarTab === 'risk' ? 'active-live' : ''}`} style={{ padding: '6px 8px', flex: 1, fontSize: '0.8rem' }}>Risk Queue</button>
+            <button type="button" onClick={() => setSidebarTab('timeline')} className={`ghost-button ${sidebarTab === 'timeline' ? 'active-live' : ''}`} style={{ padding: '6px 8px', flex: 1, fontSize: '0.8rem' }}>Timeline</button>
+            <button type="button" onClick={() => setSidebarTab('tracer')} className={`ghost-button ${sidebarTab === 'tracer' ? 'active-live' : ''}`} style={{ padding: '6px 8px', flex: 1, fontSize: '0.8rem' }}>Tracer</button>
+            <button type="button" onClick={() => setSidebarTab('config')} className={`ghost-button ${sidebarTab === 'config' ? 'active-live' : ''}`} style={{ padding: '6px 8px', flex: 1, fontSize: '0.8rem', position: 'relative' }}>
+              What-If
+              {customWeights && <span style={{ position: 'absolute', top: 4, right: 4, width: 6, height: 6, borderRadius: '50%', background: '#f59e0b' }} />}
+            </button>
+          </div>
+
+          <div style={{ flex: 1, overflowY: 'auto' }}>
+            {sidebarTab === 'risk' && (
+              <HighRiskAccountsPanel
+                accounts={highRiskAccounts}
+                selectedAccount={selectedAccount}
+                loading={highRiskLoading}
+                error={highRiskError}
+                onAccountSelect={handleAccountSelect}
+              />
+            )}
+            {sidebarTab === 'timeline' && (
+              <AccountTimeline accountId={selectedAccount} />
+            )}
+            {sidebarTab === 'tracer' && (
+              <PathTracer 
+                defaultSource={selectedAccount} 
+                onPathFound={(result) => {
+                  if (result && result.path_accounts) {
+                    // Adapt PathTracer response to the format expected by the graph
+                    setSelectedEvidence({
+                      highlight_accounts: result.path_accounts,
+                      highlight_transaction_ids: result.path.map(p => p.transaction_id)
+                    });
+                    setSelectedReason('path_tracer');
+                  } else if (result && result.indicator === 'path_tracer') {
+                     // For our custom PathTracer component shape
+                     setSelectedEvidence(result.evidence);
+                     setSelectedReason('path_tracer');
+                  } else {
+                    setSelectedEvidence(null);
+                    setSelectedReason(null);
+                  }
+                }} 
+              />
+            )}
+            {sidebarTab === 'config' && (
+              <RiskConfigurator 
+                onRiskRecalculated={(rankedAccounts, weights) => {
+                  setHighRiskAccounts(rankedAccounts.slice(0, 16));
+                  setHighRiskCategoryCount(rankedAccounts.filter(a => a.risk_level === 'HIGH').length);
+                  setLowRiskCategoryCount(rankedAccounts.filter(a => a.risk_level === 'LOW').length);
+                  // weights is null on Reset → revert to default scoring
+                  setCustomWeights(weights ?? null);
+                  setSidebarTab('risk');
+                }}
+              />
+            )}
+          </div>
         </aside>
 
         <main className="panel-card graph-card">
@@ -325,11 +396,10 @@ export default function InvestigationDashboard({ onBack }) {
         </div>
 
         <div className="panel-card">
-          <div className="panel-title-block">
-            <h2 className="panel-title">Account Timeline</h2>
-            <p className="panel-copy">Chronological transaction history for the selected account.</p>
-          </div>
-          <AccountTimeline accountId={selectedAccount} />
+          <TypologyScanner 
+            selectedAccount={selectedAccount}
+            onAccountSelect={handleAccountSelect}
+          />
         </div>
       </section>
     </div>

@@ -112,11 +112,29 @@ def find_shortest_path(source: str, target: str, max_hops: int = 5) -> list[dict
     return path_steps
 
 
+def count_round_trips(sent_to: dict, received_from: dict) -> int:
+    round_trips = 0
+    for counterparty, sent_amount in sent_to.items():
+        received_amount = received_from.get(counterparty, 0.0)
+        # Require meaningful bidirectional flow: both directions >= ₹5000
+        # to avoid flagging minor fee/refund-style bidirectional flows.
+        if received_amount >= 5000 and sent_amount >= 5000:
+            round_trips += 1
+    return round_trips
+
+
 def account_participates_in_cycle(account_id: str, max_length: int = 3) -> bool:
-    """Return True when the account participates in a short directed cycle (e.g. A→B→C→A)."""
+    """Return True only when the account is part of MULTIPLE short directed cycles.
+    
+    Requiring 2+ distinct cycles prevents false positives in small dense graphs
+    where nearly every account can be reached in 3 hops.
+    """
     graph = _get_graph()
     if not graph.has_node(account_id):
         return False
+
+    cycle_count = 0
+    seen_pairs = set()  # Track unique (first_hop, second_hop) pairs
 
     for first_hop in graph.successors(account_id):
         if first_hop == account_id:
@@ -124,15 +142,15 @@ def account_participates_in_cycle(account_id: str, max_length: int = 3) -> bool:
         for second_hop in graph.successors(first_hop):
             if second_hop in {account_id, first_hop}:
                 continue
+            pair = (first_hop, second_hop)
+            if pair in seen_pairs:
+                continue
             if graph.has_edge(second_hop, account_id):
-                return True
+                seen_pairs.add(pair)
+                cycle_count += 1
+                if cycle_count >= 2:
+                    return True
 
-            if max_length >= 4:
-                for third_hop in graph.successors(second_hop):
-                    if third_hop in {account_id, first_hop, second_hop}:
-                        continue
-                    if graph.has_edge(third_hop, account_id):
-                        return True
     return False
 
 

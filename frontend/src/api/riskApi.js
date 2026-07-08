@@ -24,12 +24,46 @@ export async function fetchRiskAccount(accountId) {
   return handleResponse(res);
 }
 
+export async function fetchRiskAccountWithWeights(accountId, weights) {
+  const res = await fetch(`/api/risk/account/${encodeURIComponent(accountId)}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ weights }),
+  });
+  return handleResponse(res);
+}
+
 export async function fetchExplainability(accountId) {
   const res = await fetch(`/api/explanations/account/${encodeURIComponent(accountId)}`);
   return handleResponse(res);
 }
 
+export async function fetchExplainabilityWithWeights(accountId, weights) {
+  const res = await fetch(`/api/explanations/account/${encodeURIComponent(accountId)}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ weights }),
+  });
+  return handleResponse(res);
+}
+
 export async function fetchAccountFeatures(accountId) {
   const res = await fetch(`/api/features/account/${encodeURIComponent(accountId)}`);
+  return handleResponse(res);
+}
+
+export async function fetchRecalculatedRisk(weights) {
+  const res = await fetch('/api/risk/recalculate', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ weights }),
+  });
+  return handleResponse(res);
+}
+
+export async function fetchTopTypologyAccounts(typologyName, limit = 10) {
+  const res = await fetch(`/api/risk/typology/${encodeURIComponent(typologyName)}?limit=${encodeURIComponent(limit)}`);
   return handleResponse(res);
 }

@@ -71,40 +71,40 @@ export default function TransactionGraph({ selectedAccount, selectedReason, sele
 
     const layoutConfig = showFullNetwork
       ? {
-          name: 'grid',
+        name: 'grid',
+        fit: true,
+        padding: 100,
+        avoidOverlap: true,
+        avoidOverlapPadding: 24,
+        nodeDimensionsIncludeLabels: true,
+        rows: 4,
+        cols: 5,
+        animate: true,
+        animationDuration: 700,
+      }
+      : (() => {
+        const positions = {};
+        positions[activeAccount] = { x: 0, y: 0 };
+        const count = neighborIds.size;
+        const radius = Math.max(240, count * 70);
+        Array.from(neighborIds).forEach((neighborId, index) => {
+          const angle = (Math.PI * 2 * index) / Math.max(count, 1);
+          positions[neighborId] = {
+            x: Math.cos(angle) * radius,
+            y: Math.sin(angle) * radius,
+          };
+        });
+
+        return {
+          name: 'preset',
+          positions,
           fit: true,
           padding: 100,
-          avoidOverlap: true,
-          avoidOverlapPadding: 24,
-          nodeDimensionsIncludeLabels: true,
-          rows: 4,
-          cols: 5,
           animate: true,
-          animationDuration: 700,
-        }
-      : (() => {
-          const positions = {};
-          positions[activeAccount] = { x: 0, y: 0 };
-          const count = neighborIds.size;
-          const radius = Math.max(240, count * 70);
-          Array.from(neighborIds).forEach((neighborId, index) => {
-            const angle = (Math.PI * 2 * index) / Math.max(count, 1);
-            positions[neighborId] = {
-              x: Math.cos(angle) * radius,
-              y: Math.sin(angle) * radius,
-            };
-          });
-
-          return {
-            name: 'preset',
-            positions,
-            fit: true,
-            padding: 100,
-            animate: true,
-            animationDuration: 500,
-            randomize: false,
-          };
-        })();
+          animationDuration: 500,
+          randomize: false,
+        };
+      })();
 
     cyRef.current = cytoscape({
       container: containerRef.current,
@@ -343,14 +343,14 @@ export default function TransactionGraph({ selectedAccount, selectedReason, sele
   const activeAccount = selectedAccount || graphData?.nodes?.[0]?.id || 'Loading';
   const neighborCount = graphData
     ? Array.from(
-        new Set(
-          graphData.edges.reduce((ids, edge) => {
-            if (edge.source === activeAccount && edge.target !== activeAccount) ids.push(edge.target);
-            if (edge.target === activeAccount && edge.source !== activeAccount) ids.push(edge.source);
-            return ids;
-          }, []),
-        ),
-      ).length
+      new Set(
+        graphData.edges.reduce((ids, edge) => {
+          if (edge.source === activeAccount && edge.target !== activeAccount) ids.push(edge.target);
+          if (edge.target === activeAccount && edge.source !== activeAccount) ids.push(edge.source);
+          return ids;
+        }, []),
+      ),
+    ).length
     : 0;
   const incidentEdges = graphData
     ? graphData.edges.filter((edge) => edge.source === activeAccount || edge.target === activeAccount)
@@ -360,7 +360,7 @@ export default function TransactionGraph({ selectedAccount, selectedReason, sele
   const totalEdgeCount = incidentEdges.length;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
       <div className="graph-toolbar">
         <div className="graph-focus-label">
           Investigation Focus: {activeAccount} · Neighbors: {neighborCount} · Edges: {totalEdgeCount} · Incoming: {incomingEdgeCount} · Outgoing: {outgoingEdgeCount}
@@ -369,8 +369,47 @@ export default function TransactionGraph({ selectedAccount, selectedReason, sele
           {showFullNetwork ? 'Show Neighborhood View' : 'Show Full Network'}
         </button>
       </div>
+
       {loading && <div style={{ color: '#475569', marginBottom: 12 }}>Loading transaction network…</div>}
-      <div ref={containerRef} className="graph-canvas" style={{ flex: 1, minHeight: 420, borderRadius: 20, overflow: 'hidden' }} />
+
+      {/* Graph canvas with floating controls and legend */}
+      <div style={{ flex: 1, position: 'relative', minHeight: 0 }}>
+        <div ref={containerRef} className="graph-canvas" style={{ width: '100%', height: '100%', borderRadius: 20, overflow: 'hidden' }} />
+
+        {/* Floating zoom controls — top-right */}
+        <div className="graph-zoom-controls">
+          <button
+            type="button"
+            className="graph-zoom-btn"
+            title="Zoom in"
+            onClick={() => cyRef.current && cyRef.current.zoom({ level: cyRef.current.zoom() * 1.3, renderedPosition: { x: cyRef.current.width() / 2, y: cyRef.current.height() / 2 } })}
+          >＋</button>
+          <button
+            type="button"
+            className="graph-zoom-btn"
+            title="Zoom out"
+            onClick={() => cyRef.current && cyRef.current.zoom({ level: cyRef.current.zoom() * 0.77, renderedPosition: { x: cyRef.current.width() / 2, y: cyRef.current.height() / 2 } })}
+          >－</button>
+          <button
+            type="button"
+            className="graph-zoom-btn"
+            title="Fit to screen"
+            onClick={() => cyRef.current && cyRef.current.fit(undefined, 40)}
+          >⊡</button>
+        </div>
+
+        {/* Legend — bottom-left */}
+        <div className="graph-legend">
+          <div className="graph-legend-row"><span className="graph-legend-dot" style={{ background: '#facc15', borderColor: '#f59e0b' }} />Focus account</div>
+          <div className="graph-legend-row"><span className="graph-legend-dot" style={{ background: '#38bdf8', borderColor: '#93c5fd' }} />Neighbor</div>
+          <div className="graph-legend-row"><span className="graph-legend-dot" style={{ background: '#ef4444', borderColor: '#fecaca' }} />High-Risk</div>
+          <div className="graph-legend-row"><span className="graph-legend-dot" style={{ background: '#16a34a', borderColor: '#86efac' }} />Salaried</div>
+          <div className="graph-legend-row"><span className="graph-legend-dot" style={{ background: '#f59e0b', borderColor: '#fcd34d' }} />Business</div>
+          <div className="graph-legend-divider" />
+          <div className="graph-legend-row"><span className="graph-legend-edge" style={{ background: '#34d399' }} />Incoming</div>
+          <div className="graph-legend-row"><span className="graph-legend-edge" style={{ background: '#60a5fa' }} />Outgoing</div>
+        </div>
+      </div>
     </div>
   );
 }

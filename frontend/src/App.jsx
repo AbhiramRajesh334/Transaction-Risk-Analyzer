@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import TopNav from './components/layout/TopNav';
 import HomePage from './pages/HomePage';
 import InvestigationDashboard from './pages/InvestigationDashboard';
+import TimelinePage from './pages/TimelinePage';
 import './styles/InvestigationDashboard.css';
 
 export default function App() {
@@ -28,6 +29,7 @@ export default function App() {
       />
       {currentPage === 'home' && <HomePage onNavigate={() => setCurrentPage('network')} />}
       {currentPage === 'network' && <InvestigationDashboard onBack={() => setCurrentPage('home')} />}
+      {currentPage === 'timeline' && <TimelinePage />}
     </div>
   );
 }

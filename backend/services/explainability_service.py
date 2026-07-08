@@ -367,8 +367,8 @@ def _build_reason_entries(account_id: str, top_reasons: List[str], indicators: d
     return entries
 
 
-def get_explanation_for_account(account_id: str) -> dict:
-    risk_profile = get_risk_for_account(account_id)
+def get_explanation_for_account(account_id: str, custom_weights: dict = None) -> dict:
+    risk_profile = get_risk_for_account(account_id, custom_weights=custom_weights)
     features = get_features_for_account(account_id)
     indicators = get_indicators_for_account(account_id)
 

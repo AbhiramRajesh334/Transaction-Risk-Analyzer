@@ -21,6 +21,9 @@ from app.simulation.scenarios.suspicious_exposure import inject_suspicious_expos
 from app.simulation.scenarios.round_tripping import inject_round_tripping
 from app.simulation.scenarios.structuring import inject_structuring
 from app.simulation.scenarios.circular_flow import inject_circular_flow
+from app.simulation.scenarios.ghost_account_reactivation import inject_ghost_account_reactivation
+from app.simulation.scenarios.fan_out_cash_out import inject_fan_out_cash_out
+from app.simulation.scenarios.layered_pass_through import inject_layered_pass_through
 
 SEED = 42
 
@@ -165,6 +168,9 @@ def generate_demo_dataset() -> dict:
         inject_round_tripping,
         inject_structuring,
         inject_circular_flow,
+        inject_ghost_account_reactivation,
+        inject_fan_out_cash_out,
+        inject_layered_pass_through,
     ]:
         result = scenario_executor(accounts_db, transactions_db, next_tx_index)
         next_tx_index = result["next_transaction_index"]
@@ -186,13 +192,13 @@ def generate_demo_dataset() -> dict:
     final_accounts = list_accounts()
     final_transactions = list_transactions()
 
-    if len(final_accounts) != 16:
+    if len(final_accounts) < 16:
         raise ValueError(
-            f"Demo dataset must contain exactly 16 accounts, found {len(final_accounts)}."
+            f"Demo dataset must contain at least 16 accounts, found {len(final_accounts)}."
         )
-    if len(final_transactions) >= 100:
+    if len(final_transactions) >= 200:
         raise ValueError(
-            f"Demo dataset must contain fewer than 100 transactions, found {len(final_transactions)}."
+            f"Demo dataset must contain fewer than 200 transactions, found {len(final_transactions)}."
         )
 
     risk_counts = Counter()

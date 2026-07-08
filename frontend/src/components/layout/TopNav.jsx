@@ -24,6 +24,13 @@ export default function TopNav({ currentPage, onNavigate, isDarkMode, toggleDark
         </button>
         <button
           type="button"
+          className={`nav-link ${currentPage === 'timeline' ? 'active' : ''}`}
+          onClick={() => onNavigate('timeline')}
+        >
+          Timeline
+        </button>
+        <button
+          type="button"
           className="nav-link theme-toggle"
           onClick={toggleDarkMode}
           style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '8px' }}

@@ -140,7 +140,8 @@ def _counterparty_explosion_indicator(features: dict, baseline: dict) -> dict:
 
 def _round_tripping_indicator(features: dict) -> dict:
     round_trip_count = features.get("round_trip_count", 0)
-    score = _normalize(round_trip_count, 1)
+    # Scale: 0 trips=0, 1 trip=35, 2 trips=65, 3+ trips=100
+    score = _normalize(round_trip_count, 3)
     evidence = {
         "round_trip_count": round_trip_count,
         "components": {"round_trip_score": _round_score(score)},
@@ -161,9 +162,20 @@ def _structuring_indicator(features: dict) -> dict:
 
 def _circular_flow_indicator(features: dict) -> dict:
     participation = features.get("circular_flow_participation", 0)
-    score = 100.0 if participation else 0.0
+    pass_through = features.get("pass_through_ratio") or 0.0
+    # Not just binary: scale by how strong the pass-through also is.
+    # Only confirmed multi-cycle accounts with high pass-through get max score.
+    if not participation:
+        score = 0.0
+    elif pass_through >= 0.9:
+        score = 100.0
+    elif pass_through >= 0.7:
+        score = 80.0
+    else:
+        score = 55.0
     evidence = {
         "circular_flow_participation": participation,
+        "pass_through_ratio": round(pass_through, 2),
         "components": {"cycle_score": _round_score(score)},
     }
     return _build_indicator(score, evidence)
@@ -298,4 +310,32 @@ def get_top_exposure(limit: int = 10) -> List[dict]:
     refresh_if_needed()
     return sorted(
         _cache.values(), key=lambda item: item["suspicious_exposure"]["score"], reverse=True
+    )[:limit]
+
+
+def get_top_round_tripping(limit: int = 10) -> List[dict]:
+    refresh_if_needed()
+    return sorted(
+        _cache.values(), key=lambda item: item["round_tripping"]["score"], reverse=True
+    )[:limit]
+
+
+def get_top_structuring(limit: int = 10) -> List[dict]:
+    refresh_if_needed()
+    return sorted(
+        _cache.values(), key=lambda item: item["structuring"]["score"], reverse=True
+    )[:limit]
+
+
+def get_top_circular_flow(limit: int = 10) -> List[dict]:
+    refresh_if_needed()
+    return sorted(
+        _cache.values(), key=lambda item: item["circular_flow"]["score"], reverse=True
+    )[:limit]
+
+
+def get_top_amount_anomaly(limit: int = 10) -> List[dict]:
+    refresh_if_needed()
+    return sorted(
+        _cache.values(), key=lambda item: item["amount_anomaly"]["score"], reverse=True
     )[:limit]

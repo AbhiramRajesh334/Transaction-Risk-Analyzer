@@ -50,7 +50,8 @@ def _count_round_trips(transactions: list[dict]) -> int:
     round_trips = 0
     for counterparty, sent_amount in sent_to.items():
         received_amount = received_from.get(counterparty, 0.0)
-        if received_amount > 0 and min(sent_amount, received_amount) >= 1000:
+        # Require meaningful bidirectional flow: both directions >= ₹5000
+        if received_amount >= 5000 and sent_amount >= 5000:
             round_trips += 1
     return round_trips
 
